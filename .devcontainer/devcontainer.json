@@ -3,6 +3,7 @@
   "dockerComposeFile": "../docker-compose.yml",
   "service": "web",
   "workspaceFolder": "/app",
+  "postCreateCommand": "npm install",
   "forwardPorts": [5173],
   "customizations": {
     "vscode": {
