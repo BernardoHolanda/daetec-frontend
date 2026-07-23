@@ -1,0 +1,14 @@
+name: daetec-frontend
+
+services:
+  web:
+    build: .
+    hostname: daetec-frontend
+    user: node
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sleep infinity

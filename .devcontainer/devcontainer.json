@@ -1,0 +1,14 @@
+{
+  "name": "DAETEC Frontend",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "web",
+  "workspaceFolder": "/app",
+  "forwardPorts": [5173],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar"
+      ]
+    }
+  }
+}
