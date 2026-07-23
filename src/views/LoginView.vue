@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useField, useForm } from 'vee-validate'
+import axios from 'axios'
+import api from '../services/api'
+import { useAuthStore } from '../stores/auth'
+
+const auth = useAuthStore()
+const router = useRouter()
+
+const erroLogin = ref('')
+const carregando = ref(false)
 
 const { handleSubmit, errors } = useForm({
   validationSchema: {
@@ -15,8 +26,26 @@ const { handleSubmit, errors } = useForm({
 const { value: username } = useField<string>('username')
 const { value: password } = useField<string>('password')
 
-const onSubmit = handleSubmit((values) => {
-  console.log('validou, enviaria:', values)
+const onSubmit = handleSubmit(async (values) => {
+  erroLogin.value = ''
+  carregando.value = true
+  try {
+    const form = new URLSearchParams()
+    form.append('username', values.username)
+    form.append('password', values.password)
+
+    const { data } = await api.post<{ access_token: string }>('/login', form)
+    auth.setToken(data.access_token)
+    router.push({ name: 'home' })
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 401) {
+      erroLogin.value = 'Usuário ou senha inválidos'
+    } else {
+      erroLogin.value = 'Não foi possível conectar. Tente novamente.'
+    }
+  } finally {
+    carregando.value = false
+  }
 })
 </script>
 
@@ -45,11 +74,14 @@ const onSubmit = handleSubmit((values) => {
         <p v-if="errors.password" class="text-sm text-red-600 mt-1">{{ errors.password }}</p>
       </div>
 
+      <p v-if="erroLogin" class="text-sm text-red-600 text-center">{{ erroLogin }}</p>
+
       <button
         type="submit"
-        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition"
+        :disabled="carregando"
+        class="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white font-medium py-2 rounded-lg transition"
       >
-        Entrar
+        {{ carregando ? 'Entrando...' : 'Entrar' }}
       </button>
     </form>
   </main>
