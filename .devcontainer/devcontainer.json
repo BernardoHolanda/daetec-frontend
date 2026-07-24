@@ -7,7 +7,7 @@
   "forwardPorts": [5173],
   "customizations": {
     "vscode": {
-      "extensions": ["Vue.volar", "esbenp.prettier-vscode"],
+      "extensions": ["Vue.volar", "esbenp.prettier-vscode", "dbaeumer.vscode-eslint"],
       "settings": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "esbenp.prettier-vscode"
