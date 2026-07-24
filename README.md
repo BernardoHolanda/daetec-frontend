@@ -52,7 +52,7 @@ Duas ferramentas, cada uma no seu papel:
 - **Prettier** (`npm run format`) — o **formatador**: cuida só da aparência (aspas,
   espaços, largura de linha). Config em `.prettierrc.json`.
 
-Elas não brigam: o `@vue/eslint-config-prettier` desliga as regras de estilo do ESLint,
+O `@vue/eslint-config-prettier` desliga as regras de estilo do ESLint,
 deixando aparência 100% com o Prettier. No Dev Container o **format-on-save** já vem
 ligado (extensão do Prettier + settings no `devcontainer.json`).
 
