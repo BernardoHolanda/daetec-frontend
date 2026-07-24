@@ -35,11 +35,26 @@ Requer **Docker** + **VS Code** com a extensão **Dev Containers**.
 
 ## Scripts
 
-| Comando | O quê |
-|---|---|
-| `npm run dev` | servidor de desenvolvimento (Vite + HMR) |
-| `npm run build` | build de produção em `dist/` |
-| `npm run preview` | serve o build de produção localmente |
+| Comando           | O quê                                      |
+| ----------------- | ------------------------------------------ |
+| `npm run dev`     | servidor de desenvolvimento (Vite + HMR)   |
+| `npm run build`   | build de produção em `dist/`               |
+| `npm run preview` | serve o build de produção localmente       |
+| `npm run lint`    | checa o código com ESLint (bugs/qualidade) |
+| `npm run format`  | formata tudo com Prettier                  |
+
+## Qualidade de código
+
+Duas ferramentas, cada uma no seu papel:
+
+- **ESLint** (`npm run lint`) — o **fiscal**: caça problema de lógica (variável não
+  usada, `v-for` sem key, etc.). Reporta; `npm run lint -- --fix` conserta o que dá.
+- **Prettier** (`npm run format`) — o **formatador**: cuida só da aparência (aspas,
+  espaços, largura de linha). Config em `.prettierrc.json`.
+
+Elas não brigam: o `@vue/eslint-config-prettier` desliga as regras de estilo do ESLint,
+deixando aparência 100% com o Prettier. No Dev Container o **format-on-save** já vem
+ligado (extensão do Prettier + settings no `devcontainer.json`).
 
 ## Estrutura
 
