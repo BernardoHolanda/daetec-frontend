@@ -64,7 +64,7 @@ const onSubmit = handleSubmit(async (values) => {
         <div>
           <h1 class="text-[28px] font-bold tracking-tight xl:text-[26px]">DAETEC</h1>
           <p class="text-[11px] font-medium tracking-widest text-violet-600 uppercase">
-            Registro de vendas
+            Diretório acadêmico
           </p>
         </div>
       </div>

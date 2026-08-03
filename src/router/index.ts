@@ -19,8 +19,18 @@ const router = createRouter({
         // import() dinâmico: cada tela vira um arquivo separado no build,
         // baixado só quando o usuário entra nela.
         { path: "vender", name: "vender", component: () => import("../views/VenderView.vue") },
+        {
+          path: "minhas-vendas",
+          name: "minhas-vendas",
+          component: () => import("../views/MinhasVendasView.vue"),
+        },
         { path: "contas", name: "contas", component: () => import("../views/ContasView.vue") },
-        { path: "perfil", name: "perfil", component: () => import("../views/PerfilView.vue") },
+        {
+          path: "cadastros",
+          name: "cadastros",
+          component: () => import("../views/CadastrosView.vue"),
+          meta: { admin: true },
+        },
         {
           path: "produtos",
           name: "produtos",
@@ -31,6 +41,12 @@ const router = createRouter({
           path: "clientes",
           name: "clientes",
           component: () => import("../views/ClientesView.vue"),
+          meta: { admin: true },
+        },
+        {
+          path: "vendedores",
+          name: "vendedores",
+          component: () => import("../views/VendedoresView.vue"),
           meta: { admin: true },
         },
         {

@@ -23,6 +23,13 @@ defineProps<{ nome: string }>()
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l4 2" />
     </template>
+    <template v-else-if="nome === 'minhas-vendas'">
+      <rect x="3" y="4" width="18" height="16" rx="3" />
+      <path d="M7 9h10M7 13h6" />
+    </template>
+    <template v-else-if="nome === 'vendedores'">
+      <path d="M3 9l1.5-5h15L21 9M5 9v11h14V9M3 9h18" />
+    </template>
     <template v-else-if="nome === 'produtos'">
       <path d="M4 7l8-4 8 4v10l-8 4-8-4z" />
       <path d="M4 7l8 4 8-4M12 11v10" />
@@ -35,9 +42,11 @@ defineProps<{ nome: string }>()
       <rect x="3" y="4" width="18" height="16" rx="3" />
       <path d="M8 15v-3M12 15v-6M16 15v-4" />
     </template>
-    <template v-else-if="nome === 'perfil'">
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 20a7 7 0 0114 0" />
+    <template v-else-if="nome === 'cadastros'">
+      <rect x="3" y="3" width="7" height="7" rx="2" />
+      <rect x="14" y="3" width="7" height="7" rx="2" />
+      <rect x="3" y="14" width="7" height="7" rx="2" />
+      <rect x="14" y="14" width="7" height="7" rx="2" />
     </template>
     <template v-else-if="nome === 'sair'">
       <path d="M14 4H7a2 2 0 00-2 2v12a2 2 0 002 2h7M17 8l4 4-4 4M21 12H10" />
