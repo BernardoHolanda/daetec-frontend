@@ -1,1 +1,29 @@
+@import "@fontsource-variable/ibm-plex-sans";
 @import "tailwindcss";
+
+@theme {
+  /* Neutros levemente arroxeados — conversam com o violet em vez de brigar */
+  --color-fundo: #fbfaff;
+  --color-linha: #e8e6f0;
+  --color-linha-forte: #d8d5e4;
+  --color-tinta: #1b1830;
+  --color-tinta-suave: #6b6785;
+  --color-tinta-fraca: #8b87a3;
+
+  /* Formas de pagamento — cada uma com cor fixa em todo o app */
+  --color-pix: #0f9b8e;
+  --color-debito: #2563eb;
+  --color-credito: #7c3aed;
+  --color-dinheiro: #15803d;
+  --color-conta: #b45309;
+
+  /* Tipografia */
+  --font-sans: "IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-fundo);
+    color: var(--color-tinta);
+  }
+}
