@@ -134,9 +134,10 @@ const onSubmit = handleSubmit(async (values) => {
               type="text"
               autocomplete="username"
               autofocus
-              :aria-invalid="!!errors.username"
+              :aria-invalid="!!errors.username || !!erroLogin"
               :aria-describedby="errors.username ? 'erro-username' : undefined"
-              class="border-linha-forte h-13 rounded-lg border px-3.5 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 xl:h-12"
+              class="h-13 rounded-lg border px-3.5 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 xl:h-12"
+              :class="errors.username || erroLogin ? 'border-red-600' : 'border-linha-forte'"
             />
             <p v-if="errors.username" id="erro-username" class="text-sm font-medium text-red-700">
               {{ errors.username }}
@@ -146,14 +147,15 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="flex flex-col gap-1.5">
             <label for="password" class="text-[13px] font-semibold">Senha</label>
             <div
-              class="border-linha-forte flex h-13 items-center gap-2 rounded-lg border pr-2 pl-3.5 focus-within:border-violet-600 focus-within:ring-4 focus-within:ring-violet-200 xl:h-12"
+              class="flex h-13 items-center gap-2 rounded-lg border pr-2 pl-3.5 focus-within:border-violet-600 focus-within:ring-4 focus-within:ring-violet-200 xl:h-12"
+              :class="errors.password || erroLogin ? 'border-red-600' : 'border-linha-forte'"
             >
               <input
                 id="password"
                 v-model="password"
                 :type="mostrarSenha ? 'text' : 'password'"
                 autocomplete="current-password"
-                :aria-invalid="!!errors.password"
+                :aria-invalid="!!errors.password || !!erroLogin"
                 :aria-describedby="errors.password ? 'erro-password' : undefined"
                 class="min-w-0 flex-1 text-base outline-none"
               />
