@@ -11,6 +11,7 @@ const router = useRouter()
 
 const erroLogin = ref("")
 const carregando = ref(false)
+const mostrarSenha = ref(false)
 
 const { handleSubmit, errors } = useForm({
   validationSchema: {
@@ -50,39 +51,143 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <main class="min-h-screen flex items-center justify-center bg-zinc-100">
-    <form @submit="onSubmit" class="w-full max-w-sm bg-white rounded-xl shadow p-8 space-y-4">
-      <h1 class="text-2xl font-bold text-zinc-800 text-center">DAETEC</h1>
-
-      <div>
-        <label class="block text-sm font-medium text-zinc-700 mb-1">Usuário</label>
-        <input
-          v-model="username"
-          type="text"
-          class="w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-        <p v-if="errors.username" class="text-sm text-red-600 mt-1">{{ errors.username }}</p>
+  <main class="flex min-h-screen flex-col bg-white xl:flex-row">
+    <aside
+      class="xl:border-linha flex flex-col items-start gap-4 px-6 pt-8 xl:w-155 xl:shrink-0 xl:justify-between xl:border-r xl:bg-violet-50 xl:px-14 xl:py-16"
+    >
+      <div class="flex flex-col items-start gap-4 xl:flex-row xl:items-center xl:gap-3.5">
+        <div
+          class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-violet-600 text-[27px] font-bold text-white xl:h-13 xl:w-13 xl:text-[25px]"
+        >
+          D
+        </div>
+        <div>
+          <h1 class="text-[28px] font-bold tracking-tight xl:text-[26px]">DAETEC</h1>
+          <p class="text-[11px] font-medium tracking-[0.12em] text-violet-600 uppercase">
+            Registro de vendas
+          </p>
+        </div>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-zinc-700 mb-1">Senha</label>
-        <input
-          v-model="password"
-          type="password"
-          class="w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-        />
-        <p v-if="errors.password" class="text-sm text-red-600 mt-1">{{ errors.password }}</p>
+      <p class="text-tinta-suave text-base leading-relaxed text-pretty xl:hidden">
+        Toda venda do dia registrada em segundos, do corredor à mesa do CA.
+      </p>
+
+      <div class="hidden xl:flex xl:max-w-110 xl:flex-col xl:gap-6">
+        <p class="text-[40px] leading-tight font-semibold tracking-tight text-balance">
+          Toda venda do dia registrada em segundos.
+        </p>
+        <p class="text-tinta-suave text-[17px] leading-relaxed text-pretty">
+          Vendas, contas em aberto e o fechamento do caixa no mesmo lugar — no celular do corredor e
+          no computador do centro acadêmico.
+        </p>
+        <ul class="flex flex-col gap-2.5 text-[15px]">
+          <li class="flex items-center gap-2.5">
+            <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
+            Pix, débito, crédito, dinheiro e conta
+          </li>
+          <li class="flex items-center gap-2.5">
+            <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
+            Contas em aberto por cliente
+          </li>
+          <li class="flex items-center gap-2.5">
+            <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
+            Relatório do dia por vendedor
+          </li>
+        </ul>
       </div>
 
-      <p v-if="erroLogin" class="text-sm text-red-600 text-center">{{ erroLogin }}</p>
+      <p class="text-tinta-fraca hidden text-sm xl:block">
+        Acesso criado pela administração do diretório.
+      </p>
+    </aside>
 
-      <button
-        type="submit"
-        :disabled="carregando"
-        class="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-60 text-white font-medium py-2 rounded-lg transition"
-      >
-        {{ carregando ? "Entrando..." : "Entrar" }}
-      </button>
-    </form>
+    <div class="flex flex-1 flex-col px-6 pb-7 xl:items-center xl:justify-center xl:px-16">
+      <div class="flex w-full flex-1 flex-col xl:max-w-100 xl:flex-none">
+        <div class="mb-6 hidden xl:block">
+          <h2 class="text-2xl leading-tight font-semibold tracking-tight">Entrar</h2>
+          <p class="text-tinta-suave mt-1.5 text-[15px]">
+            Use o usuário que a administração te passou.
+          </p>
+        </div>
+
+        <form class="mt-8 flex flex-col gap-4 xl:mt-0" @submit="onSubmit">
+          <p
+            v-if="erroLogin"
+            role="alert"
+            class="flex items-start gap-2.5 rounded-lg border border-red-300 bg-red-50 px-3.5 py-3 text-[15px] leading-snug font-medium text-red-700"
+          >
+            <span
+              aria-hidden="true"
+              class="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-red-600 text-[13px] font-bold text-white"
+            >
+              !
+            </span>
+            {{ erroLogin }}
+          </p>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="username" class="text-[13px] font-semibold">Usuário</label>
+            <input
+              id="username"
+              v-model="username"
+              type="text"
+              autocomplete="username"
+              autofocus
+              :aria-invalid="!!errors.username"
+              :aria-describedby="errors.username ? 'erro-username' : undefined"
+              class="border-linha-forte h-13 rounded-lg border px-3.5 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 xl:h-12"
+            />
+            <p v-if="errors.username" id="erro-username" class="text-sm font-medium text-red-700">
+              {{ errors.username }}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="password" class="text-[13px] font-semibold">Senha</label>
+            <div
+              class="border-linha-forte flex h-13 items-center gap-2 rounded-lg border pr-2 pl-3.5 focus-within:border-violet-600 focus-within:ring-4 focus-within:ring-violet-200 xl:h-12"
+            >
+              <input
+                id="password"
+                v-model="password"
+                :type="mostrarSenha ? 'text' : 'password'"
+                autocomplete="current-password"
+                :aria-invalid="!!errors.password"
+                :aria-describedby="errors.password ? 'erro-password' : undefined"
+                class="min-w-0 flex-1 text-base outline-none"
+              />
+              <button
+                type="button"
+                class="h-10 shrink-0 rounded-md bg-violet-50 px-3 text-[13px] font-semibold text-violet-800"
+                @click="mostrarSenha = !mostrarSenha"
+              >
+                {{ mostrarSenha ? "Ocultar" : "Mostrar" }}
+              </button>
+            </div>
+            <p v-if="errors.password" id="erro-password" class="text-sm font-medium text-red-700">
+              {{ errors.password }}
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            :disabled="carregando"
+            class="mt-1 flex h-13 items-center justify-center gap-2.5 rounded-lg bg-violet-600 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:cursor-wait disabled:bg-violet-700"
+          >
+            <span
+              v-if="carregando"
+              aria-hidden="true"
+              class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+            ></span>
+            {{ carregando ? "Entrando..." : "Entrar" }}
+          </button>
+        </form>
+
+        <p class="text-tinta-fraca mt-auto pt-8 text-sm leading-snug xl:mt-6 xl:pt-0">
+          Problemas para entrar? Fale com quem administra o DAETEC.
+        </p>
+      </div>
+    </div>
   </main>
 </template>
