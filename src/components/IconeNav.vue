@@ -48,6 +48,15 @@ defineProps<{ nome: string }>()
       <rect x="3" y="14" width="7" height="7" rx="2" />
       <rect x="14" y="14" width="7" height="7" rx="2" />
     </template>
+    <template v-else-if="nome === 'busca'">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M16.5 16.5L21 21" />
+    </template>
+    <template v-else-if="nome === 'carrinho'">
+      <path d="M4 5h2l2 10h10l2-7H7" />
+      <circle cx="9" cy="19" r="1.5" />
+      <circle cx="17" cy="19" r="1.5" />
+    </template>
     <template v-else-if="nome === 'sair'">
       <path d="M14 4H7a2 2 0 00-2 2v12a2 2 0 002 2h7M17 8l4 4-4 4M21 12H10" />
     </template>
