@@ -37,7 +37,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     const { data } = await api.post<{ access_token: string }>("/login", form)
     auth.setToken(data.access_token)
-    router.push({ name: "home" })
+    router.push({ name: "vender" })
   } catch (err) {
     if (axios.isAxiosError(err) && err.response?.status === 401) {
       erroLogin.value = "Usuário ou senha inválidos"
@@ -63,7 +63,7 @@ const onSubmit = handleSubmit(async (values) => {
         </div>
         <div>
           <h1 class="text-[28px] font-bold tracking-tight xl:text-[26px]">DAETEC</h1>
-          <p class="text-[11px] font-medium tracking-[0.12em] text-violet-600 uppercase">
+          <p class="text-[11px] font-medium tracking-widest text-violet-600 uppercase">
             Registro de vendas
           </p>
         </div>
