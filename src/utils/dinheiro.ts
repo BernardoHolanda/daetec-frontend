@@ -1,11 +1,4 @@
-/**
- * Dinheiro é tratado em CENTAVOS (número inteiro) do começo ao fim.
- *
- * Motivo: float binário não representa 0,10 exatamente — `0.1 + 0.2` dá
- * 0.30000000000000004. Num app de caixa esse erro se acumula e o total do dia
- * fecha errado. Por isso o backend manda `Decimal` como string ("6.00"): pra
- * você converter, e não pra usar direto numa conta.
- */
+/* Dinheiro é tratado em CENTAVOS (número inteiro) do começo ao fim.*/
 
 /** `"6.00"` (como o backend manda) → `600` */
 export function paraCentavos(valor: string): number {

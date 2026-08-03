@@ -36,7 +36,7 @@ export const OPERACAO: ItemNav[] = [
   },
 ]
 
-/** Grupo "CADASTROS" — só admin, e nunca na navegação do celular. */
+/** Grupo "CADASTROS" — só admin. */
 export const CADASTROS: ItemNav[] = [
   { nome: "produtos", rotulo: "Produtos" },
   { nome: "clientes", rotulo: "Clientes" },

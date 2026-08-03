@@ -13,8 +13,6 @@ const carregando = ref(true)
 const erro = ref(false)
 const busca = ref("")
 
-/** produto_id → quantidade. Map em vez de array: busca e atualização em O(1),
- *  e o mesmo produto nunca entra duas vezes. */
 const carrinho = ref(new Map<number, number>())
 
 const hoje = new Date().toLocaleDateString("pt-BR", {

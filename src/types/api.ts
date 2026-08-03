@@ -20,6 +20,6 @@ export interface Produto {
   /** `Decimal` do backend, serializado como string ("6.00"). Nunca use em conta
    *  direto — passe por `paraCentavos()`. */
   preco: string
-  /** dono da mercadoria (lição 44) */
+  /** dono da mercadoria */
   vendedor: Vendedor
 }

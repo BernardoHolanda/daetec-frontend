@@ -3,8 +3,6 @@ defineProps<{ nome: string }>()
 </script>
 
 <template>
-  <!-- stroke="currentColor": o ícone herda a cor do texto, então o estado
-       ativo/inativo é resolvido só com classe de cor no elemento pai -->
   <svg
     viewBox="0 0 24 24"
     fill="none"

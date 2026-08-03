@@ -19,7 +19,6 @@ const itensOperacao = computed(() => OPERACAO.filter(visivel))
 
 const itensCelular = computed<ItemNav[]>(() => [
   ...itensOperacao.value.filter((item) => item.celular),
-  // no celular não há barra lateral: os cadastros entram como quarto item
   ...(usuarioStore.isAdmin ? [{ nome: "cadastros", rotulo: "Cadastros" }] : []),
 ])
 
@@ -33,8 +32,6 @@ function aoTeclar(evento: KeyboardEvent) {
   if (evento.key === "Escape") menuAberto.value = false
 }
 
-// listener global precisa ser removido junto com o componente,
-// senão fica vazando um a cada montagem
 onMounted(() => window.addEventListener("keydown", aoTeclar))
 onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
 
@@ -142,8 +139,6 @@ function sair() {
           </button>
 
           <template v-if="menuAberto">
-            <!-- fundo invisível que captura o clique fora — resolve o
-                 'fechar ao clicar em qualquer lugar' sem listener no document -->
             <div class="fixed inset-0 z-20" @click="menuAberto = false"></div>
 
             <div
