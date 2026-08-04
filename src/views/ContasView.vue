@@ -1,8 +1,208 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue"
+import { listarContas } from "../services/contas"
+import { formatarBRL, paraCentavos } from "../utils/dinheiro"
+import { formatarDiaHora } from "../utils/data"
+import { normalizar } from "../utils/texto"
+import type { ContaAberta } from "../types/api"
+import IconeNav from "../components/IconeNav.vue"
+
+type Ordem = "valor" | "antigo" | "nome"
+
+const ORDENS: { chave: Ordem; rotulo: string }[] = [
+  { chave: "valor", rotulo: "Maior valor" },
+  { chave: "antigo", rotulo: "Mais antigo" },
+  { chave: "nome", rotulo: "Nome" },
+]
+
+// data em ISO ordena alfabeticamente na mesma ordem do relógio
+const COMPARADORES: Record<Ordem, (a: ContaAberta, b: ContaAberta) => number> = {
+  valor: (a, b) => paraCentavos(b.total) - paraCentavos(a.total),
+  antigo: (a, b) => a.primeiro_consumo.localeCompare(b.primeiro_consumo),
+  nome: (a, b) => a.nome.localeCompare(b.nome, "pt-BR"),
+}
+
+// uma fonte só pras colunas: cabeçalho e linha não podem divergir
+const COLUNAS = "lg:grid-cols-[1.6fr_1fr_1fr_200px_130px]"
+
+const contas = ref<ContaAberta[]>([])
+const total = ref(0)
+const carregando = ref(true)
+const erro = ref(false)
+const busca = ref("")
+const ordem = ref<Ordem>("valor")
+
+const visiveis = computed(() => {
+  const termo = normalizar(busca.value.trim())
+  const filtradas = termo
+    ? contas.value.filter((conta) => normalizar(conta.nome).includes(termo))
+    : contas.value
+  // sort() reordena no lugar: copiar antes, senão mexeria na lista original
+  return [...filtradas].sort(COMPARADORES[ordem.value])
+})
+
+async function carregar() {
+  carregando.value = true
+  erro.value = false
+  try {
+    const resposta = await listarContas()
+    contas.value = resposta.contas
+    total.value = paraCentavos(resposta.total)
+  } catch {
+    erro.value = true
+  } finally {
+    carregando.value = false
+  }
+}
+
+onMounted(carregar)
+</script>
+
 <template>
-  <main class="flex flex-1 flex-col gap-2 p-6">
-    <h1 class="text-[22px] font-semibold tracking-tight">Contas em aberto</h1>
-    <p class="text-tinta-suave">
-      Em construção — depende de um <code>GET /contas</code> que ainda não existe no backend.
+  <main class="flex min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-5 lg:p-6">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+      <div>
+        <h1 class="text-[22px] font-semibold tracking-tight">Contas em aberto</h1>
+        <p class="text-tinta-suave mt-1 text-sm">
+          {{ contas.length }}
+          {{ contas.length === 1 ? "cliente com consumo" : "clientes com consumo" }} não pago
+        </p>
+      </div>
+
+      <div
+        class="flex items-baseline justify-between gap-6 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3.5 lg:flex-col lg:items-end lg:gap-1"
+      >
+        <div>
+          <p class="text-[11px] font-semibold tracking-widest text-amber-800 uppercase">
+            Total geral em aberto
+          </p>
+          <p class="text-[13px] text-amber-700">não entra no recebido</p>
+        </div>
+        <p class="text-[28px] font-bold tracking-tight text-amber-800 tabular-nums lg:text-[40px]">
+          {{ formatarBRL(total) }}
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <label class="relative block lg:w-90">
+        <span class="sr-only">Buscar cliente</span>
+        <IconeNav
+          nome="busca"
+          class="text-tinta-fraca pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
+        />
+        <input
+          v-model="busca"
+          type="search"
+          placeholder="Buscar cliente"
+          class="border-linha-forte h-12 w-full rounded-lg border bg-white pr-3.5 pl-11 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
+        />
+      </label>
+
+      <div class="flex items-center gap-1.5">
+        <span class="text-tinta-suave hidden text-sm lg:inline">Ordenar:</span>
+        <button
+          v-for="opcao in ORDENS"
+          :key="opcao.chave"
+          type="button"
+          :aria-pressed="ordem === opcao.chave"
+          class="rounded-full px-3.5 py-2 text-sm focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+          :class="
+            ordem === opcao.chave
+              ? 'bg-tinta font-semibold text-white'
+              : 'border-linha text-tinta-suave border bg-white font-medium'
+          "
+          @click="ordem = opcao.chave"
+        >
+          {{ opcao.rotulo }}
+        </button>
+      </div>
+    </div>
+
+    <ul v-if="carregando" aria-hidden="true" class="flex flex-col gap-2">
+      <li
+        v-for="n in 4"
+        :key="n"
+        class="border-linha flex min-h-19 animate-pulse items-center justify-between rounded-xl border bg-white p-3.5"
+      >
+        <span class="bg-linha h-5 w-40 rounded"></span>
+        <span class="bg-linha h-6 w-24 rounded"></span>
+      </li>
+    </ul>
+
+    <div
+      v-else-if="erro"
+      class="border-linha flex flex-col items-start gap-3 rounded-xl border bg-white p-6"
+    >
+      <div>
+        <p class="font-semibold">Não foi possível carregar as contas</p>
+        <p class="text-tinta-suave mt-1 text-sm">Verifique a conexão e tente de novo.</p>
+      </div>
+      <button
+        type="button"
+        class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
+        @click="carregar"
+      >
+        Tentar novamente
+      </button>
+    </div>
+
+    <div
+      v-else-if="contas.length === 0"
+      class="border-linha-forte flex flex-col items-center gap-2 rounded-xl border border-dashed p-10 text-center"
+    >
+      <p class="font-semibold">Nenhuma conta em aberto</p>
+      <p class="text-tinta-suave text-sm">Toda venda na conta já foi paga.</p>
+    </div>
+
+    <p v-else-if="visiveis.length === 0" class="text-tinta-suave py-10 text-center">
+      Nenhum cliente com “{{ busca.trim() }}”.
     </p>
+
+    <template v-else>
+      <div
+        class="border-linha text-tinta-fraca bg-fundo hidden rounded-t-xl border border-b-0 px-5 py-3 text-[11px] font-semibold tracking-widest uppercase lg:grid lg:gap-3"
+        :class="COLUNAS"
+      >
+        <span>Cliente</span>
+        <span>Último consumo</span>
+        <span>Consumos</span>
+        <span class="text-right">Em aberto</span>
+        <span class="text-right">Ação</span>
+      </div>
+
+      <ul
+        class="lg:border-linha flex flex-col gap-2 lg:gap-0 lg:overflow-hidden lg:rounded-b-xl lg:border lg:bg-white"
+      >
+        <li v-for="conta in visiveis" :key="conta.cliente_id">
+          <RouterLink
+            :to="{ name: 'conta', params: { clienteId: conta.cliente_id } }"
+            class="border-linha lg:border-linha lg:hover:bg-fundo flex min-h-19 items-center justify-between gap-3 rounded-xl border bg-white p-3.5 hover:border-violet-300 lg:gap-3 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-4"
+            :class="[COLUNAS, 'lg:grid']"
+          >
+            <div class="min-w-0 lg:contents">
+              <span class="block truncate font-semibold">{{ conta.nome }}</span>
+              <div class="text-tinta-suave flex gap-1 text-[13px] lg:contents lg:text-[15px]">
+                <span class="tabular-nums">{{ formatarDiaHora(conta.ultimo_consumo) }}</span>
+                <span aria-hidden="true" class="lg:hidden">·</span>
+                <span>
+                  {{ conta.consumos }} {{ conta.consumos === 1 ? "consumo" : "consumos" }}
+                </span>
+              </div>
+            </div>
+
+            <span class="text-right text-[22px] font-bold text-amber-800 tabular-nums lg:text-2xl">
+              {{ formatarBRL(paraCentavos(conta.total)) }}
+            </span>
+
+            <span
+              class="hidden h-10 place-items-center justify-self-end rounded-lg border border-violet-300 px-3.5 text-sm font-semibold text-violet-800 lg:grid"
+            >
+              Abrir conta
+            </span>
+          </RouterLink>
+        </li>
+      </ul>
+    </template>
   </main>
 </template>

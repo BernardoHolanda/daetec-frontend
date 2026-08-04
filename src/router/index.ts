@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from "vue-router"
+import { h } from "vue"
+import { createRouter, createWebHistory, RouterView } from "vue-router"
 import { useAuthStore } from "../stores/auth"
 import { useUsuarioStore } from "../stores/usuario"
 import AppLayout from "../components/AppLayout.vue"
@@ -20,7 +21,22 @@ const router = createRouter({
           name: "minhas-vendas",
           component: () => import("../views/MinhasVendasView.vue"),
         },
-        { path: "contas", name: "contas", component: () => import("../views/ContasView.vue") },
+        {
+          // pai de passagem: só existe pra "Contas em aberto" continuar ativo na lateral
+          // enquanto o detalhe está aberto
+          path: "contas",
+          component: { render: () => h(RouterView) },
+          children: [
+            { path: "", name: "contas", component: () => import("../views/ContasView.vue") },
+            {
+              path: ":clienteId",
+              name: "conta",
+              component: () => import("../views/ContaView.vue"),
+              // props: true entrega o :clienteId como prop — a view não depende do router
+              props: true,
+            },
+          ],
+        },
         {
           path: "cadastros",
           name: "cadastros",

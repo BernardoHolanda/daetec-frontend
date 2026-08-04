@@ -41,6 +41,20 @@ export interface Venda {
   registrado_por_id: number
 }
 
+export interface ContaAberta {
+  cliente_id: number
+  nome: string
+  total: string
+  consumos: number
+  primeiro_consumo: string
+  ultimo_consumo: string
+}
+
+export interface ContasAbertas {
+  total: string
+  contas: ContaAberta[]
+}
+
 export interface Produto {
   id: number
   nome: string
