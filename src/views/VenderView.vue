@@ -4,10 +4,11 @@ import { listarProdutos } from "../services/produtos"
 import { registrarVenda } from "../services/vendas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { normalizar } from "../utils/texto"
-import type { FormaPagamento, OpcaoPagamento, Produto } from "../types/api"
+import type { Cliente, FormaPagamento, OpcaoPagamento, Produto, VendaCreate } from "../types/api"
 import type { ItemCarrinho } from "../types/carrinho"
 import PainelCarrinho from "../components/PainelCarrinho.vue"
 import SeletorPagamento from "../components/SeletorPagamento.vue"
+import SeletorCliente from "../components/SeletorCliente.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 import IconeNav from "../components/IconeNav.vue"
 
@@ -64,11 +65,31 @@ function mostrarSucesso(venda: { total: string; forma: string }) {
   timerSucesso = setTimeout(() => (sucesso.value = null), SEGUNDOS_DO_AVISO * 1000)
 }
 
-const contaPendente = computed(() => forma.value === "conta")
+const cliente = ref<Cliente | null>(null)
 
-const podeRegistrar = computed(
-  () => itens.value.length > 0 && forma.value !== null && !contaPendente.value,
+function ehFormaAVista(opcao: OpcaoPagamento): opcao is FormaPagamento {
+  return opcao !== "conta"
+}
+
+const naConta = computed(() => forma.value === "conta")
+
+const primeiroNome = computed(() => cliente.value?.nome.split(" ")[0] ?? "")
+
+const podeRegistrar = computed(() => {
+  if (itens.value.length === 0 || forma.value === null) return false
+  return naConta.value ? cliente.value !== null : true
+})
+
+const rotuloBotao = computed(() =>
+  naConta.value && cliente.value
+    ? `Registrar na conta de ${primeiroNome.value}`
+    : "Registrar venda",
 )
+
+const resumoPagamento = computed(() => {
+  if (naConta.value) return `Conta de ${primeiroNome.value} · não entra como recebido`
+  return forma.value ? `${ROTULO_PAGAMENTO[forma.value]} · entra como recebido` : ""
+})
 
 function noCarrinho(produtoId: number): number {
   return carrinho.value.get(produtoId) ?? 0
@@ -103,18 +124,22 @@ async function confirmar() {
   if (!podeRegistrar.value) return
   enviando.value = true
   erroEnvio.value = ""
+  const dados: VendaCreate = {
+    itens: itens.value.map((item) => ({
+      produto_id: item.produto.id,
+      quantidade: item.quantidade,
+    })),
+  }
+  // na conta o backend infere: sem forma_pagamento e com cliente, a venda nasce em aberto
+  if (naConta.value && cliente.value) dados.cliente_id = cliente.value.id
+  else if (forma.value && ehFormaAVista(forma.value)) dados.forma_pagamento = forma.value
+
+  const resumo =
+    naConta.value || !forma.value ? `Conta de ${primeiroNome.value}` : ROTULO_PAGAMENTO[forma.value]
+
   try {
-    await registrarVenda({
-      forma_pagamento: forma.value as FormaPagamento,
-      itens: itens.value.map((item) => ({
-        produto_id: item.produto.id,
-        quantidade: item.quantidade,
-      })),
-    })
-    mostrarSucesso({
-      total: formatarBRL(total.value),
-      forma: ROTULO_PAGAMENTO[forma.value as OpcaoPagamento],
-    })
+    await registrarVenda(dados)
+    mostrarSucesso({ total: formatarBRL(total.value), forma: resumo })
     limpar()
     modalAberto.value = false
   } catch {
@@ -140,6 +165,10 @@ watch(
     if (quantos === 0) forma.value = null
   },
 )
+
+watch(forma, (escolhida) => {
+  if (escolhida !== "conta") cliente.value = null
+})
 
 async function carregar() {
   carregando.value = true
@@ -298,19 +327,19 @@ onMounted(carregar)
 
       <SeletorPagamento v-model="forma" :desabilitado="itens.length === 0" />
 
+      <SeletorCliente v-if="naConta" v-model="cliente" />
+
       <div class="border-linha flex items-baseline justify-between border-t pt-3">
-        <span class="text-tinta-suave text-[15px] font-semibold">Total</span>
-        <span class="text-[34px] font-bold tracking-tight tabular-nums">
+        <span class="text-tinta-suave text-[15px] font-semibold">
+          {{ naConta ? "Vai para a conta" : "Total" }}
+        </span>
+        <span
+          class="text-[34px] font-bold tracking-tight tabular-nums"
+          :class="naConta && 'text-amber-800'"
+        >
           {{ formatarBRL(total) }}
         </span>
       </div>
-
-      <p
-        v-if="contaPendente"
-        class="rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-800"
-      >
-        Venda na conta ainda não está pronta — falta escolher o cliente.
-      </p>
 
       <p v-if="erroEnvio" role="alert" class="text-sm font-medium text-red-700">
         {{ erroEnvio }}
@@ -319,10 +348,10 @@ onMounted(carregar)
       <button
         type="button"
         :disabled="!podeRegistrar"
-        class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:bg-violet-200"
+        class="h-13 rounded-lg bg-violet-600 px-4 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:bg-violet-200"
         @click="modalAberto = true"
       >
-        Registrar venda
+        {{ rotuloBotao }}
       </button>
 
       <p class="text-tinta-fraca -mt-2 text-center text-[13px]">
@@ -333,7 +362,7 @@ onMounted(carregar)
     <ModalConfirmacao
       :aberto="modalAberto"
       titulo="Confirmar a venda?"
-      confirmar="Registrar venda"
+      :confirmar="rotuloBotao"
       :carregando="enviando"
       @fechar="modalAberto = false"
       @confirmar="confirmar"
@@ -346,10 +375,12 @@ onMounted(carregar)
       </ul>
 
       <div class="border-linha mt-4 flex items-baseline justify-between border-t pt-4">
-        <span class="text-tinta-suave text-sm font-medium">
-          {{ forma ? ROTULO_PAGAMENTO[forma] : "" }}
+        <span class="text-sm font-medium" :class="naConta ? 'text-amber-800' : 'text-tinta-suave'">
+          {{ resumoPagamento }}
         </span>
-        <span class="text-3xl font-bold tabular-nums">{{ formatarBRL(total) }}</span>
+        <span class="text-3xl font-bold tabular-nums" :class="naConta && 'text-amber-800'">
+          {{ formatarBRL(total) }}
+        </span>
       </div>
     </ModalConfirmacao>
   </div>

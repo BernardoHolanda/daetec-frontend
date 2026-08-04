@@ -70,6 +70,10 @@ defineProps<{ nome: string }>()
       <rect x="2" y="6" width="20" height="12" rx="2" />
       <circle cx="12" cy="12" r="2.5" />
     </template>
+    <template v-else-if="nome === 'aviso'">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v4M12 16h.01" />
+    </template>
     <template v-else-if="nome === 'check'">
       <path d="M20 6L9 17l-5-5" />
     </template>
