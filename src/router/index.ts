@@ -9,15 +9,11 @@ const router = createRouter({
   routes: [
     { path: "/login", name: "login", component: LoginView },
     {
-      // rota-mãe: só monta a moldura (barra lateral + navegação inferior).
-      // As filhas renderizam no <RouterView/> de dentro do AppLayout.
       path: "/",
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
         { path: "", redirect: { name: "vender" } },
-        // import() dinâmico: cada tela vira um arquivo separado no build,
-        // baixado só quando o usuário entra nela.
         { path: "vender", name: "vender", component: () => import("../views/VenderView.vue") },
         {
           path: "minhas-vendas",
@@ -71,17 +67,12 @@ router.beforeEach(async (to) => {
     return { name: "vender" }
   }
 
-  // a primeira navegação autenticada busca quem está logado;
-  // as seguintes reaproveitam o que já está no store
   const usuarioStore = useUsuarioStore()
   if (!(await usuarioStore.carregar())) {
-    // token vencido ou inválido — o backend recusou o /usuarios/me
     auth.logout()
     return { name: "login" }
   }
 
-  // esconder rota de admin é conveniência, não segurança:
-  // quem barra de verdade é o exigir_admin do backend (403)
   if (to.meta.admin && !usuarioStore.isAdmin) {
     return { name: "vender" }
   }

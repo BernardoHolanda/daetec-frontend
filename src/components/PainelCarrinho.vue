@@ -6,7 +6,6 @@ import IconeNav from "./IconeNav.vue"
 
 const props = defineProps<{
   itens: ItemCarrinho[]
-  total: number
 }>()
 
 defineEmits<{
@@ -87,10 +86,5 @@ const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quanti
         Limpar carrinho
       </button>
     </template>
-
-    <div class="border-linha flex items-baseline justify-between border-t pt-4">
-      <span class="text-tinta-suave text-sm font-medium">Total</span>
-      <span class="text-3xl font-bold tabular-nums">{{ formatarBRL(total) }}</span>
-    </div>
   </section>
 </template>

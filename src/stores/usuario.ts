@@ -8,11 +8,6 @@ export const useUsuarioStore = defineStore("usuario", () => {
 
   const isAdmin = computed(() => usuario.value?.papel === "admin")
 
-  /**
-   * Busca quem está logado. Devolve `false` se não conseguiu — o chamador
-   * decide o que fazer (na prática: mandar pro login).
-   * Não busca de novo se já tem: o usuário não muda durante a sessão.
-   */
   async function carregar(): Promise<boolean> {
     if (usuario.value) return true
     try {

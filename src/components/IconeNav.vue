@@ -17,7 +17,7 @@ defineProps<{ nome: string }>()
       <rect x="3" y="3" width="18" height="18" rx="5" />
       <path d="M12 8v8M8 12h8" />
     </template>
-    <template v-else-if="nome === 'contas'">
+    <template v-else-if="nome === 'contas' || nome === 'conta'">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l4 2" />
     </template>
@@ -54,6 +54,24 @@ defineProps<{ nome: string }>()
       <path d="M4 5h2l2 10h10l2-7H7" />
       <circle cx="9" cy="19" r="1.5" />
       <circle cx="17" cy="19" r="1.5" />
+    </template>
+    <template v-else-if="nome === 'pix'">
+      <path d="M12 3l9 9-9 9-9-9z" />
+    </template>
+    <template v-else-if="nome === 'debito'">
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      <path d="M2 10h20" />
+    </template>
+    <template v-else-if="nome === 'credito'">
+      <rect x="2" y="5" width="20" height="14" rx="3" />
+      <path d="M2 10h20M6 15h4" />
+    </template>
+    <template v-else-if="nome === 'dinheiro'">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.5" />
+    </template>
+    <template v-else-if="nome === 'check'">
+      <path d="M20 6L9 17l-5-5" />
     </template>
     <template v-else-if="nome === 'sair'">
       <path d="M14 4H7a2 2 0 00-2 2v12a2 2 0 002 2h7M17 8l4 4-4 4M21 12H10" />
