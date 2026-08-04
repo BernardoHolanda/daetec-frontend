@@ -55,6 +55,15 @@ const enviando = ref(false)
 const erroEnvio = ref("")
 const sucesso = ref<{ total: string; forma: string } | null>(null)
 
+const SEGUNDOS_DO_AVISO = 5
+let timerSucesso: ReturnType<typeof setTimeout> | undefined
+
+function mostrarSucesso(venda: { total: string; forma: string }) {
+  clearTimeout(timerSucesso)
+  sucesso.value = venda
+  timerSucesso = setTimeout(() => (sucesso.value = null), SEGUNDOS_DO_AVISO * 1000)
+}
+
 const contaPendente = computed(() => forma.value === "conta")
 
 const podeRegistrar = computed(
@@ -85,7 +94,10 @@ function aoTeclar(evento: KeyboardEvent) {
 }
 
 onMounted(() => window.addEventListener("keydown", aoTeclar))
-onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", aoTeclar)
+  clearTimeout(timerSucesso)
+})
 
 async function confirmar() {
   if (!podeRegistrar.value) return
@@ -99,10 +111,10 @@ async function confirmar() {
         quantidade: item.quantidade,
       })),
     })
-    sucesso.value = {
+    mostrarSucesso({
       total: formatarBRL(total.value),
       forma: ROTULO_PAGAMENTO[forma.value as OpcaoPagamento],
-    }
+    })
     limpar()
     modalAberto.value = false
   } catch {
@@ -261,19 +273,26 @@ onMounted(carregar)
     <aside
       class="border-linha flex flex-col gap-5 bg-white p-4 lg:w-103 lg:shrink-0 lg:border-l lg:p-6"
     >
-      <div
-        v-if="sucesso"
-        role="status"
-        class="flex items-center gap-3 rounded-xl bg-green-900 px-4 py-3.5 text-white"
+      <Transition
+        enter-active-class="transition duration-200"
+        leave-active-class="transition duration-500"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
       >
-        <IconeNav nome="check" class="text-green-300" />
-        <div>
-          <p class="text-[15px] leading-tight font-semibold">Venda registrada</p>
-          <p class="text-[13px] text-green-200 tabular-nums">
-            {{ sucesso.total }} · {{ sucesso.forma }}
-          </p>
+        <div
+          v-if="sucesso"
+          role="status"
+          class="flex items-center gap-3 rounded-xl bg-green-900 px-4 py-3.5 text-white"
+        >
+          <IconeNav nome="check" class="text-green-300" />
+          <div>
+            <p class="text-[15px] leading-tight font-semibold">Venda registrada</p>
+            <p class="text-[13px] text-green-200 tabular-nums">
+              {{ sucesso.total }} · {{ sucesso.forma }}
+            </p>
+          </div>
         </div>
-      </div>
+      </Transition>
 
       <PainelCarrinho :itens="itens" class="lg:flex-1" @alterar="alterar" @limpar="limpar" />
 
