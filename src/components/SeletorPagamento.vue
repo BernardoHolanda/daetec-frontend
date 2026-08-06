@@ -1,45 +1,33 @@
 <script setup lang="ts">
+import { computed } from "vue"
 import IconeNav from "./IconeNav.vue"
+import { ROTULO_PAGAMENTO, ehFormaAVista } from "../utils/pagamento"
 import type { OpcaoPagamento } from "../types/api"
 
 interface Opcao {
   valor: OpcaoPagamento
-  rotulo: string
   cor: string
   ativo: string
 }
 
 const OPCOES: Opcao[] = [
-  { valor: "pix", rotulo: "Pix", cor: "text-pix", ativo: "border-2 border-pix bg-teal-50" },
-  {
-    valor: "debito",
-    rotulo: "Débito",
-    cor: "text-debito",
-    ativo: "border-2 border-debito bg-blue-50",
-  },
-  {
-    valor: "credito",
-    rotulo: "Crédito",
-    cor: "text-credito",
-    ativo: "border-2 border-credito bg-violet-50",
-  },
-  {
-    valor: "dinheiro",
-    rotulo: "Dinheiro",
-    cor: "text-dinheiro",
-    ativo: "border-2 border-dinheiro bg-green-50",
-  },
-  {
-    valor: "conta",
-    rotulo: "Conta",
-    cor: "text-conta",
-    ativo: "border-2 border-conta bg-amber-50",
-  },
+  { valor: "pix", cor: "text-pix", ativo: "border-2 border-pix bg-teal-50" },
+  { valor: "debito", cor: "text-debito", ativo: "border-2 border-debito bg-blue-50" },
+  { valor: "credito", cor: "text-credito", ativo: "border-2 border-credito bg-violet-50" },
+  { valor: "dinheiro", cor: "text-dinheiro", ativo: "border-2 border-dinheiro bg-green-50" },
+  { valor: "conta", cor: "text-conta", ativo: "border-2 border-conta bg-amber-50" },
 ]
 
 const escolhida = defineModel<OpcaoPagamento | null>({ required: true })
 
-defineProps<{ desabilitado?: boolean }>()
+// soAVista: no fechamento de conta "Conta" não é opção — a dívida já existe
+const props = defineProps<{ desabilitado?: boolean; soAVista?: boolean }>()
+
+const opcoes = computed(() =>
+  props.soAVista ? OPCOES.filter((opcao) => ehFormaAVista(opcao.valor)) : OPCOES,
+)
+
+const colunas = computed(() => (props.soAVista ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-5"))
 </script>
 
 <template>
@@ -51,9 +39,9 @@ defineProps<{ desabilitado?: boolean }>()
       Forma de pagamento
     </legend>
 
-    <div role="radiogroup" aria-label="Forma de pagamento" class="grid grid-cols-5 gap-2">
+    <div role="radiogroup" aria-label="Forma de pagamento" class="grid gap-2" :class="colunas">
       <button
-        v-for="opcao in OPCOES"
+        v-for="opcao in opcoes"
         :key="opcao.valor"
         type="button"
         role="radio"
@@ -67,7 +55,7 @@ defineProps<{ desabilitado?: boolean }>()
       >
         <IconeNav :nome="opcao.valor" />
         <span class="text-xs font-semibold" :class="escolhida !== opcao.valor && 'text-tinta'">
-          {{ opcao.rotulo }}
+          {{ ROTULO_PAGAMENTO[opcao.valor] }}
         </span>
       </button>
     </div>

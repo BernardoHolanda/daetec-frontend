@@ -4,7 +4,8 @@ import { listarProdutos } from "../services/produtos"
 import { registrarVenda } from "../services/vendas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { normalizar } from "../utils/texto"
-import type { Cliente, FormaPagamento, OpcaoPagamento, Produto, VendaCreate } from "../types/api"
+import { ehFormaAVista } from "../utils/pagamento"
+import type { Cliente, OpcaoPagamento, Produto, VendaCreate } from "../types/api"
 import type { ItemCarrinho } from "../types/carrinho"
 import PainelCarrinho from "../components/PainelCarrinho.vue"
 import SeletorPagamento from "../components/SeletorPagamento.vue"
@@ -66,10 +67,6 @@ function mostrarSucesso(venda: { total: string; forma: string }) {
 }
 
 const cliente = ref<Cliente | null>(null)
-
-function ehFormaAVista(opcao: OpcaoPagamento): opcao is FormaPagamento {
-  return opcao !== "conta"
-}
 
 const naConta = computed(() => forma.value === "conta")
 
