@@ -74,6 +74,9 @@ defineProps<{ nome: string }>()
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v4M12 16h.01" />
     </template>
+    <template v-else-if="nome === 'voltar'">
+      <path d="M15 18l-6-6 6-6" />
+    </template>
     <template v-else-if="nome === 'check'">
       <path d="M20 6L9 17l-5-5" />
     </template>

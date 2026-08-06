@@ -32,13 +32,35 @@ export interface VendaCreate {
   itens: ItemVendaCreate[]
 }
 
+export interface ProdutoResumo {
+  id: number
+  nome: string
+}
+
+export interface ItemVenda {
+  id: number
+  produto: ProdutoResumo
+  vendedor: Vendedor
+  quantidade: number
+  preco_unitario: string
+}
+
 export interface Venda {
   id: number
   data_hora: string
   forma_pagamento: FormaPagamento | null
   cliente_id: number | null
   paga_em: string | null
+  cancelada_em: string | null
   registrado_por_id: number
+  itens: ItemVenda[]
+}
+
+export interface Conta {
+  cliente_id: number
+  nome: string
+  total: string
+  vendas: Venda[]
 }
 
 export interface ContaAberta {
