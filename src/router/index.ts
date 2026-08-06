@@ -16,11 +16,7 @@ const router = createRouter({
       children: [
         { path: "", redirect: { name: "vender" } },
         { path: "vender", name: "vender", component: () => import("../views/VenderView.vue") },
-        {
-          path: "minhas-vendas",
-          name: "minhas-vendas",
-          component: () => import("../views/MinhasVendasView.vue"),
-        },
+        { path: "estoque", name: "estoque", component: () => import("../views/EstoqueView.vue") },
         {
           // pai de passagem: só existe pra "Contas em aberto" continuar ativo na lateral
           // enquanto o detalhe está aberto

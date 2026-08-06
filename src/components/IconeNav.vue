@@ -21,9 +21,9 @@ defineProps<{ nome: string }>()
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l4 2" />
     </template>
-    <template v-else-if="nome === 'minhas-vendas'">
-      <rect x="3" y="4" width="18" height="16" rx="3" />
-      <path d="M7 9h10M7 13h6" />
+    <template v-else-if="nome === 'estoque'">
+      <path d="M3 8h18v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+      <path d="M3 8l2-4h14l2 4M10 12h4" />
     </template>
     <template v-else-if="nome === 'vendedores'">
       <path d="M3 9l1.5-5h15L21 9M5 9v11h14V9M3 9h18" />
