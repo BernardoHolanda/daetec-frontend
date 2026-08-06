@@ -17,7 +17,7 @@ Requer **Docker** + **VS Code** com a extensão **Dev Containers**.
    Node; o `postCreateCommand` já roda `npm install` sozinho).
 3. Dentro do container:
    ```bash
-   npm run dev -- --host 0.0.0.0
+   npm run dev
    ```
 4. Acesse **http://localhost:5173**.
 
