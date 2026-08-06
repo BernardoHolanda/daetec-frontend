@@ -174,33 +174,38 @@ onMounted(carregar)
       <ul
         class="lg:border-linha flex flex-col gap-2 lg:gap-0 lg:overflow-hidden lg:rounded-b-xl lg:border lg:bg-white"
       >
-        <li v-for="conta in visiveis" :key="conta.cliente_id">
-          <RouterLink
-            :to="{ name: 'conta', params: { clienteId: conta.cliente_id } }"
-            class="border-linha lg:border-linha lg:hover:bg-fundo flex min-h-19 items-center justify-between gap-3 rounded-xl border bg-white p-3.5 hover:border-violet-300 lg:gap-3 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-4"
-            :class="[COLUNAS, 'lg:grid']"
-          >
-            <div class="min-w-0 lg:contents">
-              <span class="block truncate font-semibold">{{ conta.nome }}</span>
-              <div class="text-tinta-suave flex gap-1 text-[13px] lg:contents lg:text-[15px]">
-                <span class="tabular-nums">{{ formatarDiaHora(conta.ultimo_consumo) }}</span>
-                <span aria-hidden="true" class="lg:hidden">·</span>
-                <span>
-                  {{ conta.consumos }} {{ conta.consumos === 1 ? "consumo" : "consumos" }}
-                </span>
-              </div>
-            </div>
-
-            <span class="text-right text-[22px] font-bold text-amber-800 tabular-nums lg:text-2xl">
+        <li
+          v-for="conta in visiveis"
+          :key="conta.cliente_id"
+          class="border-linha lg:border-linha flex min-h-19 flex-col justify-center gap-2 rounded-xl border bg-white p-3.5 lg:grid lg:items-center lg:gap-3 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-4"
+          :class="COLUNAS"
+        >
+          <div class="flex items-baseline justify-between gap-3 lg:contents">
+            <span class="min-w-0 truncate font-semibold">{{ conta.nome }}</span>
+            <!-- order 4 e 5: no desktop o valor e o botão são as duas últimas colunas -->
+            <span
+              class="text-[22px] font-bold text-amber-800 tabular-nums lg:order-4 lg:text-right lg:text-2xl"
+            >
               {{ formatarBRL(paraCentavos(conta.total)) }}
             </span>
+          </div>
 
-            <span
-              class="hidden h-10 place-items-center justify-self-end rounded-lg border border-violet-300 px-3.5 text-sm font-semibold text-violet-800 lg:grid"
+          <div class="flex items-center justify-between gap-3 lg:contents">
+            <div class="text-tinta-suave flex min-w-0 gap-1 text-[13px] lg:contents lg:text-[15px]">
+              <span class="tabular-nums">{{ formatarDiaHora(conta.ultimo_consumo) }}</span>
+              <span aria-hidden="true" class="lg:hidden">·</span>
+              <span class="truncate">
+                {{ conta.consumos }} {{ conta.consumos === 1 ? "consumo" : "consumos" }}
+              </span>
+            </div>
+
+            <RouterLink
+              :to="{ name: 'conta', params: { clienteId: conta.cliente_id } }"
+              class="grid h-11 shrink-0 place-items-center rounded-lg border border-violet-300 px-3.5 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none lg:order-5 lg:h-10 lg:justify-self-end"
             >
-              Abrir conta
-            </span>
-          </RouterLink>
+              Ver conta
+            </RouterLink>
+          </div>
         </li>
       </ul>
     </template>
