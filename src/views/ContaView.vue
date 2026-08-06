@@ -1,17 +1,26 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { isAxiosError } from "axios"
-import { obterConta } from "../services/contas"
+import { fecharConta, obterConta } from "../services/contas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { formatarDia, formatarDiaHora } from "../utils/data"
-import type { Conta, Venda } from "../types/api"
+import { ROTULO_PAGAMENTO, ehFormaAVista } from "../utils/pagamento"
+import type { Conta, FormaPagamento, OpcaoPagamento, Venda } from "../types/api"
 import IconeNav from "../components/IconeNav.vue"
+import ModalConfirmacao from "../components/ModalConfirmacao.vue"
+import SeletorPagamento from "../components/SeletorPagamento.vue"
 
 const props = defineProps<{ clienteId: string }>()
 
 const conta = ref<Conta | null>(null)
 const carregando = ref(true)
 const erro = ref<"nao-encontrado" | "falhou" | null>(null)
+
+const modalAberto = ref(false)
+const forma = ref<OpcaoPagamento | null>(null)
+const enviando = ref(false)
+const erroAoFechar = ref("")
+const recibo = ref<{ total: number; forma: FormaPagamento } | null>(null)
 
 // uma fonte só pras colunas: cabeçalho e linha não podem divergir
 const COLUNAS = "lg:grid-cols-[180px_1fr_160px_140px]"
@@ -30,7 +39,15 @@ async function carregar() {
 }
 
 // immediate cobre a montagem; o watch cobre trocar de cliente sem sair da rota
-watch(() => props.clienteId, carregar, { immediate: true })
+watch(
+  () => props.clienteId,
+  () => {
+    // o recibo é de um cliente só; trocar de conta apaga
+    recibo.value = null
+    carregar()
+  },
+  { immediate: true },
+)
 
 const total = computed(() => paraCentavos(conta.value?.total ?? "0"))
 
@@ -72,6 +89,36 @@ function itensDa(venda: Venda): { id: number; texto: string }[] {
 // uma venda pode ter itens de donos diferentes; o Set tira a repetição
 function vendedoresDa(venda: Venda): string[] {
   return [...new Set(venda.itens.map((item) => item.vendedor.nome))]
+}
+
+const primeiroNome = computed(() => conta.value?.nome.split(" ")[0] ?? "")
+
+function abrirFechamento() {
+  forma.value = null
+  erroAoFechar.value = ""
+  recibo.value = null
+  modalAberto.value = true
+}
+
+async function confirmarFechamento() {
+  if (forma.value === null || !ehFormaAVista(forma.value)) return
+
+  // guarda antes: depois de fechar o total da conta vira zero
+  const recebido = total.value
+  const escolhida = forma.value
+
+  enviando.value = true
+  erroAoFechar.value = ""
+  try {
+    await fecharConta(props.clienteId, escolhida)
+    modalAberto.value = false
+    recibo.value = { total: recebido, forma: escolhida }
+    await carregar()
+  } catch {
+    erroAoFechar.value = "Não foi possível fechar a conta. Tente de novo."
+  } finally {
+    enviando.value = false
+  }
 }
 </script>
 
@@ -174,11 +221,11 @@ function vendedoresDa(venda: Venda): string[] {
             É ao fechar a conta que o valor <b class="text-tinta">entra como recebido</b> no
             relatório do dia.
           </p>
-          <!-- ligado no passo 3 -->
           <button
             type="button"
-            disabled
-            class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white disabled:opacity-50"
+            :disabled="conta.vendas.length === 0"
+            class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:opacity-50"
+            @click="abrirFechamento"
           >
             Fechar conta
           </button>
@@ -189,6 +236,26 @@ function vendedoresDa(venda: Venda): string[] {
             Registrar novo consumo
           </RouterLink>
         </aside>
+      </div>
+
+      <div
+        v-if="recibo"
+        class="flex flex-col items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 sm:flex-row sm:items-center"
+      >
+        <IconeNav nome="check" class="shrink-0 text-green-700" />
+        <div class="flex-1">
+          <p class="font-semibold text-green-800">Conta fechada</p>
+          <p class="text-sm text-green-700">
+            {{ formatarBRL(recibo.total) }} entraram como recebido hoje, em
+            {{ ROTULO_PAGAMENTO[recibo.forma] }}.
+          </p>
+        </div>
+        <RouterLink
+          :to="{ name: 'contas' }"
+          class="grid h-11 place-items-center rounded-lg border border-green-300 px-4 text-sm font-semibold text-green-800"
+        >
+          Voltar para as contas
+        </RouterLink>
       </div>
 
       <section class="flex flex-col gap-2">
@@ -261,15 +328,44 @@ function vendedoresDa(venda: Venda): string[] {
         <p class="text-tinta-suave text-center text-[13px]">
           Ao fechar, o valor entra como recebido hoje.
         </p>
-        <!-- ligado no passo 3 -->
         <button
           type="button"
-          disabled
-          class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white disabled:opacity-50"
+          class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none"
+          @click="abrirFechamento"
         >
           Fechar conta · {{ formatarBRL(total) }}
         </button>
       </div>
+
+      <ModalConfirmacao
+        :aberto="modalAberto"
+        :titulo="`Fechar a conta de ${primeiroNome}`"
+        confirmar="Confirmar recebimento"
+        :carregando="enviando"
+        :desabilitado="forma === null"
+        @fechar="modalAberto = false"
+        @confirmar="confirmarFechamento"
+      >
+        <div class="flex flex-col gap-4">
+          <p class="text-tinta-suave text-sm leading-relaxed">
+            Escolha a forma de pagamento. Ao confirmar,
+            <b class="text-dinheiro">{{ formatarBRL(total) }} entram como recebido hoje</b>.
+          </p>
+
+          <div class="bg-fundo flex items-baseline justify-between rounded-xl px-4 py-3.5">
+            <span class="text-tinta-suave font-semibold">Valor a receber</span>
+            <span class="text-[34px] leading-none font-bold tracking-tight tabular-nums">
+              {{ formatarBRL(total) }}
+            </span>
+          </div>
+
+          <SeletorPagamento v-model="forma" so-a-vista />
+
+          <p v-if="erroAoFechar" role="alert" class="text-sm font-semibold text-red-700">
+            {{ erroAoFechar }}
+          </p>
+        </div>
+      </ModalConfirmacao>
     </template>
   </main>
 </template>
