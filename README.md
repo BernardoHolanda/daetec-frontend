@@ -34,16 +34,16 @@ do axios. Guarda de rota assíncrona carrega o `/usuarios/me` antes de decidir o
 **Papéis** — o **admin** faz tudo; o **comum** vende, consulta e cadastra cliente.
 Esconder rota é conveniência: quem barra de verdade é o backend (403).
 
-| Tela | Rota | Quem vê | O que faz |
-|---|---|---|---|
-| **Registrar venda** | `/vender` | todos | Grade de produtos com busca sem acento, carrinho, forma de pagamento e venda **na conta** (fiado). O carrinho é limitado pelo estoque disponível e sobrevive à troca de tela. |
-| **Contas em aberto** | `/contas` | todos | Devedores com busca e três ordenações. |
-| **Detalhe da conta** | `/contas/:id` | todos | Histórico de consumo e **fechamento** da conta com recibo na tela. |
-| **Relatório do dia** | `/relatorio` | admin | Totais, quebra por forma de pagamento e por vendedor, devedores, e as vendas do dia (com cancelamento). Seletor de dia próprio, com navegação dias → meses → anos. |
-| **Produtos** | `/produtos` | admin | CRUD + definição do **estoque** (opcional). |
-| **Clientes** | `/clientes` | todos | Cadastrar é de todos (fiar exige criar na hora); editar e remover, só admin. |
-| **Vendedores** | `/vendedores` | admin | CRUD dos donos da mercadoria. |
-| **Estoque** | `/estoque` | todos | Só leitura: *Sem controle* / *Esgotado* / *N unidades*. |
+| Tela                 | Rota          | Quem vê | O que faz                                                                                                                                                                     |
+| -------------------- | ------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Registrar venda**  | `/vender`     | todos   | Grade de produtos com busca sem acento, carrinho, forma de pagamento e venda **na conta** (fiado). O carrinho é limitado pelo estoque disponível e sobrevive à troca de tela. |
+| **Contas em aberto** | `/contas`     | todos   | Devedores com busca e três ordenações.                                                                                                                                        |
+| **Detalhe da conta** | `/contas/:id` | todos   | Histórico de consumo e **fechamento** da conta com recibo na tela.                                                                                                            |
+| **Relatório do dia** | `/relatorio`  | admin   | Totais, quebra por forma de pagamento e por vendedor, devedores, e as vendas do dia (com cancelamento). Seletor de dia próprio, com navegação dias → meses → anos.            |
+| **Produtos**         | `/produtos`   | admin   | CRUD + definição do **estoque** (opcional).                                                                                                                                   |
+| **Clientes**         | `/clientes`   | todos   | Cadastrar é de todos (fiar exige criar na hora); editar e remover, só admin.                                                                                                  |
+| **Vendedores**       | `/vendedores` | admin   | CRUD dos donos da mercadoria.                                                                                                                                                 |
+| **Estoque**          | `/estoque`    | todos   | Só leitura: _Sem controle_ / _Esgotado_ / _N unidades_.                                                                                                                       |
 
 **Estoque** — `null` significa produto **não controlado** (vende à vontade) e `0`
 significa **esgotado**. Vender dá baixa; cancelar devolve. Como o carrinho já trava no
