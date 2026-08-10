@@ -4,6 +4,8 @@ import { obterRelatorio } from "../services/relatorio"
 import { formatarBRL, formatarValor, paraCentavos } from "../utils/dinheiro"
 import { FORMAS, ROTULO_PAGAMENTO } from "../utils/pagamento"
 import type { FormaPagamento, Relatorio, VendedorRelatorio } from "../types/api"
+import ErroAoCarregar from "../components/ErroAoCarregar.vue"
+import EstadoVazio from "../components/EstadoVazio.vue"
 import IconeNav from "../components/IconeNav.vue"
 import SeletorDia from "../components/SeletorDia.vue"
 
@@ -150,32 +152,15 @@ onMounted(carregar)
       ></div>
     </div>
 
-    <div
+    <ErroAoCarregar
       v-else-if="erro"
-      class="border-linha flex flex-col items-start gap-3 rounded-xl border bg-white p-6"
-    >
-      <div>
-        <p class="font-semibold">Não foi possível carregar o relatório</p>
-        <p class="text-tinta-suave mt-1 text-sm">Verifique a conexão e tente de novo.</p>
-      </div>
-      <button
-        type="button"
-        class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-        @click="carregar"
-      >
-        Tentar novamente
-      </button>
-    </div>
+      titulo="Não foi possível carregar o relatório"
+      @tentar="carregar"
+    />
 
-    <div
-      v-else-if="linhas.length === 0"
-      class="border-linha-forte flex flex-col items-center gap-2 rounded-xl border border-dashed p-10 text-center"
-    >
-      <p class="font-semibold">Nenhum movimento nesse dia</p>
-      <p class="text-tinta-suave text-sm">
-        {{ ehHoje ? "Nada recebido e nenhuma conta em aberto." : "Nada foi recebido nessa data." }}
-      </p>
-    </div>
+    <EstadoVazio v-else-if="linhas.length === 0" titulo="Nenhum movimento nesse dia">
+      {{ ehHoje ? "Nada recebido e nenhuma conta em aberto." : "Nada foi recebido nessa data." }}
+    </EstadoVazio>
 
     <template v-else>
       <!-- no celular o recebido vem primeiro e ocupa a linha toda; no desktop as três

@@ -9,7 +9,9 @@ import {
 import { normalizar } from "../utils/texto"
 import { mensagemDoErro } from "../utils/erro"
 import type { Vendedor } from "../types/api"
-import IconeNav from "../components/IconeNav.vue"
+import CampoBusca from "../components/CampoBusca.vue"
+import ErroAoCarregar from "../components/ErroAoCarregar.vue"
+import EstadoVazio from "../components/EstadoVazio.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 
 const vendedores = ref<Vendedor[]>([])
@@ -110,19 +112,7 @@ onMounted(carregar)
       </div>
 
       <div class="flex flex-col gap-2.5 lg:flex-row lg:items-center">
-        <label class="relative block lg:w-80">
-          <span class="sr-only">Buscar vendedor</span>
-          <IconeNav
-            nome="busca"
-            class="text-tinta-fraca pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
-          />
-          <input
-            v-model="busca"
-            type="search"
-            placeholder="Buscar vendedor"
-            class="border-linha-forte h-12 w-full rounded-lg border bg-white pr-3.5 pl-11 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
-          />
-        </label>
+        <CampoBusca v-model="busca" rotulo="Buscar vendedor" class="lg:w-80" />
 
         <button
           type="button"
@@ -144,42 +134,28 @@ onMounted(carregar)
       </li>
     </ul>
 
-    <div
+    <ErroAoCarregar
       v-else-if="erro"
-      class="border-linha flex flex-col items-start gap-3 rounded-xl border bg-white p-6"
-    >
-      <div>
-        <p class="font-semibold">Não foi possível carregar os vendedores</p>
-        <p class="text-tinta-suave mt-1 text-sm">Verifique a conexão e tente de novo.</p>
-      </div>
-      <button
-        type="button"
-        class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-        @click="carregar"
-      >
-        Tentar novamente
-      </button>
-    </div>
+      titulo="Não foi possível carregar os vendedores"
+      @tentar="carregar"
+    />
 
-    <div
+    <EstadoVazio
       v-else-if="vendedores.length === 0"
-      class="border-linha-forte flex flex-col items-center gap-2.5 rounded-xl border border-dashed p-8 text-center"
+      icone="vendedores"
+      titulo="Nenhum vendedor cadastrado"
     >
-      <div class="grid h-11 w-11 place-items-center rounded-xl bg-violet-50 text-violet-400">
-        <IconeNav nome="vendedores" />
-      </div>
-      <p class="font-semibold">Nenhum vendedor cadastrado</p>
-      <p class="text-tinta-suave max-w-60 text-sm">
-        Cadastre quem traz mercadoria antes de cadastrar produtos.
-      </p>
-      <button
-        type="button"
-        class="mt-1 h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-        @click="abrir(null)"
-      >
-        Novo vendedor
-      </button>
-    </div>
+      Cadastre quem traz mercadoria antes de cadastrar produtos.
+      <template #acao>
+        <button
+          type="button"
+          class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
+          @click="abrir(null)"
+        >
+          Novo vendedor
+        </button>
+      </template>
+    </EstadoVazio>
 
     <p v-else-if="visiveis.length === 0" class="text-tinta-suave py-10 text-center">
       Nenhum vendedor com “{{ busca.trim() }}”.

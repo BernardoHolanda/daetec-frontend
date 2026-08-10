@@ -11,7 +11,9 @@ import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { normalizar } from "../utils/texto"
 import { mensagemDoErro } from "../utils/erro"
 import type { Cliente } from "../types/api"
-import IconeNav from "../components/IconeNav.vue"
+import CampoBusca from "../components/CampoBusca.vue"
+import ErroAoCarregar from "../components/ErroAoCarregar.vue"
+import EstadoVazio from "../components/EstadoVazio.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 
 const COLUNAS = "lg:grid-cols-[1fr_180px_160px]"
@@ -115,19 +117,7 @@ onMounted(carregar)
       </div>
 
       <div class="flex flex-col gap-2.5 lg:flex-row lg:items-center">
-        <label class="relative block lg:w-80">
-          <span class="sr-only">Buscar cliente</span>
-          <IconeNav
-            nome="busca"
-            class="text-tinta-fraca pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
-          />
-          <input
-            v-model="busca"
-            type="search"
-            placeholder="Buscar cliente"
-            class="border-linha-forte h-12 w-full rounded-lg border bg-white pr-3.5 pl-11 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
-          />
-        </label>
+        <CampoBusca v-model="busca" rotulo="Buscar cliente" class="lg:w-80" />
 
         <button
           type="button"
@@ -150,42 +140,28 @@ onMounted(carregar)
       </li>
     </ul>
 
-    <div
+    <ErroAoCarregar
       v-else-if="erro"
-      class="border-linha flex flex-col items-start gap-3 rounded-xl border bg-white p-6"
-    >
-      <div>
-        <p class="font-semibold">Não foi possível carregar os clientes</p>
-        <p class="text-tinta-suave mt-1 text-sm">Verifique a conexão e tente de novo.</p>
-      </div>
-      <button
-        type="button"
-        class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-        @click="carregar"
-      >
-        Tentar novamente
-      </button>
-    </div>
+      titulo="Não foi possível carregar os clientes"
+      @tentar="carregar"
+    />
 
-    <div
+    <EstadoVazio
       v-else-if="clientes.length === 0"
-      class="border-linha-forte flex flex-col items-center gap-2.5 rounded-xl border border-dashed p-8 text-center"
+      icone="clientes"
+      titulo="Nenhum cliente cadastrado"
     >
-      <div class="grid h-11 w-11 place-items-center rounded-xl bg-violet-50 text-violet-400">
-        <IconeNav nome="clientes" />
-      </div>
-      <p class="font-semibold">Nenhum cliente cadastrado</p>
-      <p class="text-tinta-suave max-w-60 text-sm">
-        Cadastre alguém para poder registrar vendas na modalidade “Conta”.
-      </p>
-      <button
-        type="button"
-        class="mt-1 h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-        @click="abrir(null)"
-      >
-        Novo cliente
-      </button>
-    </div>
+      Cadastre alguém para poder registrar vendas na modalidade “Conta”.
+      <template #acao>
+        <button
+          type="button"
+          class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
+          @click="abrir(null)"
+        >
+          Novo cliente
+        </button>
+      </template>
+    </EstadoVazio>
 
     <p v-else-if="visiveis.length === 0" class="text-tinta-suave py-10 text-center">
       Nenhum cliente com “{{ busca.trim() }}”.

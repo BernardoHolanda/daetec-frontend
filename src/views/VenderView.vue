@@ -7,6 +7,9 @@ import { normalizar } from "../utils/texto"
 import { ehFormaAVista } from "../utils/pagamento"
 import type { Cliente, OpcaoPagamento, Produto, VendaCreate } from "../types/api"
 import type { ItemCarrinho } from "../types/carrinho"
+import CampoBusca from "../components/CampoBusca.vue"
+import ErroAoCarregar from "../components/ErroAoCarregar.vue"
+import EstadoVazio from "../components/EstadoVazio.vue"
 import PainelCarrinho from "../components/PainelCarrinho.vue"
 import SeletorPagamento from "../components/SeletorPagamento.vue"
 import SeletorCliente from "../components/SeletorCliente.vue"
@@ -191,19 +194,7 @@ onMounted(carregar)
           <p class="text-tinta-suave mt-1 text-sm first-letter:uppercase">{{ hoje }}</p>
         </div>
 
-        <label class="relative block lg:w-105">
-          <span class="sr-only">Buscar produto</span>
-          <IconeNav
-            nome="busca"
-            class="text-tinta-fraca pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2"
-          />
-          <input
-            v-model="busca"
-            type="search"
-            placeholder="Buscar produto"
-            class="border-linha-forte h-12 w-full rounded-lg border bg-white pr-3.5 pl-11 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
-          />
-        </label>
+        <CampoBusca v-model="busca" rotulo="Buscar produto" class="lg:w-105" />
       </div>
 
       <ul
@@ -221,32 +212,15 @@ onMounted(carregar)
         </li>
       </ul>
 
-      <div
+      <ErroAoCarregar
         v-else-if="erro"
-        class="border-linha flex flex-col items-start gap-3 rounded-xl border bg-white p-6"
-      >
-        <div>
-          <p class="font-semibold">Não foi possível carregar os produtos</p>
-          <p class="text-tinta-suave mt-1 text-sm">Verifique a conexão e tente de novo.</p>
-        </div>
-        <button
-          type="button"
-          class="h-11 rounded-lg bg-violet-600 px-4 font-semibold text-white hover:bg-violet-700"
-          @click="carregar"
-        >
-          Tentar novamente
-        </button>
-      </div>
+        titulo="Não foi possível carregar os produtos"
+        @tentar="carregar"
+      />
 
-      <div
-        v-else-if="produtos.length === 0"
-        class="border-linha-forte flex flex-col items-center gap-2 rounded-xl border border-dashed p-10 text-center"
-      >
-        <p class="font-semibold">Nenhum produto cadastrado</p>
-        <p class="text-tinta-suave text-sm">
-          Um administrador precisa cadastrar produtos antes da primeira venda.
-        </p>
-      </div>
+      <EstadoVazio v-else-if="produtos.length === 0" titulo="Nenhum produto cadastrado">
+        Um administrador precisa cadastrar produtos antes da primeira venda.
+      </EstadoVazio>
 
       <p v-else-if="produtosFiltrados.length === 0" class="text-tinta-suave py-10 text-center">
         Nenhum produto com “{{ busca }}”.
