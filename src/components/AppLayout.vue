@@ -45,8 +45,10 @@ function sair() {
 
 <template>
   <div class="flex min-h-screen">
+    <!-- h-screen + sticky: sem altura própria a aside estica até o tamanho do conteúdo,
+         e o rodapé (avatar + Sair) desce junto, pra fora da tela -->
     <aside
-      class="border-linha hidden w-62 shrink-0 flex-col gap-6 border-r bg-white px-4 py-5 lg:flex"
+      class="border-linha sticky top-0 hidden h-screen w-62 shrink-0 flex-col gap-6 border-r bg-white px-4 py-5 lg:flex"
     >
       <div class="flex items-center gap-2.5 px-2">
         <div
@@ -62,7 +64,8 @@ function sair() {
         </div>
       </div>
 
-      <nav class="flex flex-col gap-1">
+      <!-- só a lista rola, se um dia crescer; o rodapé fica ancorado embaixo -->
+      <nav class="flex flex-col gap-1 overflow-y-auto">
         <RouterLink
           v-for="item in itensOperacao"
           :key="item.nome"
