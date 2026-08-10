@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # a mesma major do Dev Container; cache do npm pela lockfile
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ci, não install: instala exatamente a lockfile e falha se ela divergir
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      # --check só reporta; no CI ninguém está lá pra aceitar um --write
+      - name: Prettier
+        run: npx prettier --check .
+
+      # o script já roda `vue-tsc -b` antes do vite: type-check e build no mesmo passo
+      - name: Type-check e build
+        run: npm run build
