@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { onBeforeUnmount, ref, watch } from "vue"
 
 const props = defineProps<{
   aberto: boolean
@@ -15,13 +15,23 @@ const emit = defineEmits<{ fechar: []; confirmar: [] }>()
 
 const dialogo = ref<HTMLDialogElement | null>(null)
 
+// showModal deixa o fundo inerte ao clique, mas não trava a rolagem: a roda do mouse
+// continua movendo a página atrás. Quem segura é o overflow do documento.
+function travarRolagem(travar: boolean) {
+  document.documentElement.classList.toggle("overflow-hidden", travar)
+}
+
 watch(
   () => props.aberto,
   (aberto) => {
     if (aberto) dialogo.value?.showModal()
     else dialogo.value?.close()
+    travarRolagem(aberto)
   },
 )
+
+// destravar no unmount: trocar de rota com o modal aberto deixaria a página presa
+onBeforeUnmount(() => travarRolagem(false))
 </script>
 
 <template>
