@@ -219,7 +219,7 @@ onMounted(carregar)
       <ul
         v-if="carregando"
         aria-hidden="true"
-        class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3"
+        class="grid grid-cols-2 gap-2.5 lg:gap-3 xl:grid-cols-3 2xl:grid-cols-4"
       >
         <li
           v-for="n in 8"
@@ -245,12 +245,18 @@ onMounted(carregar)
         Nenhum produto com “{{ busca }}”.
       </p>
 
-      <ul v-else class="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
-        <li v-for="produto in produtosFiltrados" :key="produto.id">
+      <!-- auto-rows-fr iguala a altura de todas as linhas pela mais alta: cartão de nome
+           curto fica do mesmo tamanho do de nome longo. Colunas só aumentam quando
+           sobra largura — o carrinho ocupa 412px fixos e sufoca a grade até o 2xl -->
+      <ul
+        v-else
+        class="grid auto-rows-fr grid-cols-2 gap-2.5 lg:gap-3 xl:grid-cols-3 2xl:grid-cols-4"
+      >
+        <li v-for="produto in produtosFiltrados" :key="produto.id" class="min-w-0">
           <button
             type="button"
             :disabled="!podeAdicionar(produto)"
-            class="flex min-h-22 w-full flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none disabled:cursor-not-allowed lg:min-h-24 lg:p-3.5"
+            class="flex h-full min-h-22 w-full min-w-0 flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none disabled:cursor-not-allowed lg:min-h-24 lg:p-3.5"
             :class="
               noCarrinho(produto.id)
                 ? 'border-violet-600 bg-violet-50'
@@ -261,9 +267,14 @@ onMounted(carregar)
             @click="adicionar(produto)"
           >
             <span
-              class="flex items-start justify-between gap-2 text-[15px] leading-snug font-medium lg:text-base"
+              class="flex w-full items-start justify-between gap-2 text-[15px] leading-snug font-medium lg:text-base"
             >
-              {{ produto.nome }}
+              <!-- span próprio: texto solto dentro de flex vira item com min-width:auto e
+                   não encolhe. line-clamp-2 corta no terceiro nome comprido em vez de
+                   deixar o cartão crescer; o title mostra o nome inteiro -->
+              <span :title="produto.nome" class="line-clamp-2 min-w-0 wrap-break-word">
+                {{ produto.nome }}
+              </span>
               <span
                 v-if="noCarrinho(produto.id)"
                 class="grid h-6 min-w-6 shrink-0 place-items-center rounded-full bg-violet-600 px-1.5 text-[13px] font-bold text-white tabular-nums"
@@ -271,9 +282,10 @@ onMounted(carregar)
                 {{ noCarrinho(produto.id) }}
               </span>
             </span>
-            <span class="flex w-full items-baseline justify-between gap-2">
+            <span class="flex w-full flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+              <!-- nowrap: "R$ 6,00" tem espaço no meio e quebrava depois do R$ -->
               <span
-                class="text-[19px] font-bold tabular-nums lg:text-xl"
+                class="text-[19px] font-bold whitespace-nowrap tabular-nums lg:text-xl"
                 :class="noCarrinho(produto.id) > 0 && 'text-violet-800'"
               >
                 {{ formatarBRL(paraCentavos(produto.preco)) }}
@@ -282,7 +294,7 @@ onMounted(carregar)
               <!-- produto sem controle de estoque não mostra nada: não há o que contar -->
               <span
                 v-if="produto.estoque !== null"
-                class="shrink-0 text-[13px] font-semibold tabular-nums"
+                class="shrink-0 text-[13px] font-semibold whitespace-nowrap tabular-nums"
                 :class="podeAdicionar(produto) ? 'text-tinta-fraca' : 'text-amber-700'"
               >
                 {{ produto.estoque === 0 ? "Esgotado" : `${restante(produto)} rest.` }}
@@ -293,7 +305,7 @@ onMounted(carregar)
 
         <li
           v-if="busca.trim()"
-          class="border-linha text-tinta-fraca col-span-2 flex min-h-22 items-center justify-center rounded-xl border-2 border-dashed p-3 text-center text-sm lg:min-h-24"
+          class="border-linha text-tinta-fraca col-span-full flex min-h-22 items-center justify-center rounded-xl border-2 border-dashed p-3 text-center text-sm lg:min-h-24"
         >
           {{ produtosFiltrados.length }} de {{ produtos.length }}
           {{ produtos.length === 1 ? "produto corresponde" : "produtos correspondem" }} a “{{

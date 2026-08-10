@@ -55,7 +55,7 @@ function cabeMais(item: ItemCarrinho): boolean {
             </p>
           </div>
 
-          <div class="flex items-center gap-1.5">
+          <div class="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               class="border-linha-forte text-tinta-suave h-9 w-9 rounded-lg border text-lg font-semibold"
@@ -79,7 +79,7 @@ function cabeMais(item: ItemCarrinho): boolean {
             </button>
           </div>
 
-          <span class="w-20 text-right text-[17px] font-bold tabular-nums">
+          <span class="w-20 shrink-0 text-right text-[17px] font-bold tabular-nums">
             {{ formatarBRL(item.subtotal) }}
           </span>
         </li>
