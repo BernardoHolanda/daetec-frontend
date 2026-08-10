@@ -205,7 +205,6 @@ onMounted(carregar)
           v-model="nome"
           type="text"
           autocomplete="off"
-          placeholder="Ex.: Mariana Alves"
           class="border-linha-forte h-12 w-full rounded-lg border px-3.5 text-base outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
           @keyup.enter="salvar"
         />
