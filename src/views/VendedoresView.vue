@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
-import { atualizarVendedor, criarVendedor, listarVendedores } from "../services/vendedores"
+import {
+  atualizarVendedor,
+  criarVendedor,
+  deletarVendedor,
+  listarVendedores,
+} from "../services/vendedores"
 import { normalizar } from "../utils/texto"
 import { mensagemDoErro } from "../utils/erro"
 import type { Vendedor } from "../types/api"
@@ -18,6 +23,10 @@ const emEdicao = ref<Vendedor | null>(null)
 const nome = ref("")
 const salvando = ref(false)
 const erroAoSalvar = ref("")
+
+const paraRemover = ref<Vendedor | null>(null)
+const removendo = ref(false)
+const erroAoRemover = ref("")
 
 const visiveis = computed(() => {
   const termo = normalizar(busca.value.trim())
@@ -63,6 +72,27 @@ async function salvar() {
     erroAoSalvar.value = mensagemDoErro(e, "Não foi possível salvar. Tente de novo.")
   } finally {
     salvando.value = false
+  }
+}
+
+function pedirRemocao(vendedor: Vendedor) {
+  paraRemover.value = vendedor
+  erroAoRemover.value = ""
+}
+
+async function confirmarRemocao() {
+  if (paraRemover.value === null) return
+  removendo.value = true
+  erroAoRemover.value = ""
+  try {
+    await deletarVendedor(paraRemover.value.id)
+    paraRemover.value = null
+    await carregar()
+  } catch (e) {
+    // 409 quando o vendedor tem produto ou item vendido: a FK recusa
+    erroAoRemover.value = mensagemDoErro(e, "Não foi possível remover. Tente de novo.")
+  } finally {
+    removendo.value = false
   }
 }
 
@@ -165,13 +195,22 @@ onMounted(carregar)
         class="border-linha lg:border-linha flex min-h-16 items-center justify-between gap-3 rounded-xl border bg-white p-3.5 lg:rounded-none lg:border-0 lg:border-b lg:px-5 lg:py-3 lg:last:border-b-0"
       >
         <span class="min-w-0 truncate font-semibold">{{ vendedor.nome }}</span>
-        <button
-          type="button"
-          class="h-9 shrink-0 rounded-lg border border-violet-300 px-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
-          @click="abrir(vendedor)"
-        >
-          Editar
-        </button>
+        <div class="flex shrink-0 gap-2">
+          <button
+            type="button"
+            class="h-9 rounded-lg border border-violet-300 px-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+            @click="abrir(vendedor)"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            class="h-9 rounded-lg border border-red-300 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:ring-4 focus-visible:ring-red-200 focus-visible:outline-none"
+            @click="pedirRemocao(vendedor)"
+          >
+            Remover
+          </button>
+        </div>
       </li>
     </ul>
 
@@ -205,6 +244,29 @@ onMounted(carregar)
         class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-800"
       >
         {{ erroAoSalvar }}
+      </p>
+    </ModalConfirmacao>
+
+    <ModalConfirmacao
+      :aberto="paraRemover !== null"
+      titulo="Remover vendedor"
+      confirmar="Remover"
+      perigo
+      :carregando="removendo"
+      @fechar="paraRemover = null"
+      @confirmar="confirmarRemocao"
+    >
+      <p class="leading-snug">
+        Remover <b>{{ paraRemover?.nome }}</b> do cadastro? Quem já tem produto ou venda no nome não
+        pode ser removido — o histórico depende dele.
+      </p>
+
+      <p
+        v-if="erroAoRemover"
+        role="alert"
+        class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm font-medium text-red-800"
+      >
+        {{ erroAoRemover }}
       </p>
     </ModalConfirmacao>
   </main>

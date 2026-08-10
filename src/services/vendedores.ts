@@ -15,3 +15,7 @@ export async function atualizarVendedor(id: number, nome: string): Promise<Vende
   const { data } = await api.put<Vendedor>(`/vendedores/${id}`, { nome })
   return data
 }
+
+export async function deletarVendedor(id: number): Promise<void> {
+  await api.delete(`/vendedores/${id}`)
+}
