@@ -7,6 +7,8 @@ const props = defineProps<{
   confirmar: string
   carregando?: boolean
   desabilitado?: boolean
+  // ação destrutiva: o botão de confirmar vira vermelho
+  perigo?: boolean
 }>()
 
 const emit = defineEmits<{ fechar: []; confirmar: [] }>()
@@ -51,7 +53,12 @@ watch(
       <button
         type="button"
         :disabled="carregando || desabilitado"
-        class="h-13 flex-1 rounded-lg bg-violet-600 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        class="h-13 flex-1 rounded-lg text-[17px] font-semibold text-white focus-visible:ring-4 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        :class="
+          perigo
+            ? 'bg-red-700 hover:bg-red-800 focus-visible:ring-red-300'
+            : 'bg-violet-600 hover:bg-violet-700 focus-visible:ring-violet-300'
+        "
         @click="emit('confirmar')"
       >
         {{ carregando ? "Gravando..." : confirmar }}

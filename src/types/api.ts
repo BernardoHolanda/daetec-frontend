@@ -104,3 +104,10 @@ export interface Produto {
   preco: string
   vendedor: Vendedor
 }
+
+export interface ProdutoCreate {
+  nome: string
+  // string, não number: o backend recebe Decimal e float perderia centavo no caminho
+  preco: string
+  vendedor_id: number
+}
