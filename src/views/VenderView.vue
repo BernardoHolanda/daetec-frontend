@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { storeToRefs } from "pinia"
 import { listarProdutos } from "../services/produtos"
 import { registrarVenda } from "../services/vendas"
+import { useCarrinhoStore } from "../stores/carrinho"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { normalizar } from "../utils/texto"
+import { mensagemDoErro } from "../utils/erro"
 import { ehFormaAVista } from "../utils/pagamento"
-import type { Cliente, OpcaoPagamento, Produto, VendaCreate } from "../types/api"
+import type { OpcaoPagamento, Produto, VendaCreate } from "../types/api"
 import type { ItemCarrinho } from "../types/carrinho"
 import CampoBusca from "../components/CampoBusca.vue"
 import ErroAoCarregar from "../components/ErroAoCarregar.vue"
@@ -29,7 +32,9 @@ const carregando = ref(true)
 const erro = ref(false)
 const busca = ref("")
 
-const carrinho = ref(new Map<number, number>())
+const carrinhoStore = useCarrinhoStore()
+// storeToRefs preserva a reatividade no desestruturar; sem ele viriam valores soltos
+const { quantidades, forma, cliente } = storeToRefs(carrinhoStore)
 
 const hoje = new Date().toLocaleDateString("pt-BR", {
   weekday: "long",
@@ -43,8 +48,9 @@ const produtosFiltrados = computed(() => {
   return produtos.value.filter((p) => normalizar(p.nome).includes(termo))
 })
 
+// produto removido do cadastro enquanto o carrinho esperava simplesmente some da lista
 const itens = computed<ItemCarrinho[]>(() =>
-  [...carrinho.value.entries()].flatMap(([produtoId, quantidade]) => {
+  [...quantidades.value.entries()].flatMap(([produtoId, quantidade]) => {
     const produto = produtos.value.find((p) => p.id === produtoId)
     if (!produto) return []
     const unitario = paraCentavos(produto.preco)
@@ -54,7 +60,6 @@ const itens = computed<ItemCarrinho[]>(() =>
 
 const total = computed(() => itens.value.reduce((soma, item) => soma + item.subtotal, 0))
 
-const forma = ref<OpcaoPagamento | null>(null)
 const modalAberto = ref(false)
 const enviando = ref(false)
 const erroEnvio = ref("")
@@ -68,8 +73,6 @@ function mostrarSucesso(venda: { total: string; forma: string }) {
   sucesso.value = venda
   timerSucesso = setTimeout(() => (sucesso.value = null), SEGUNDOS_DO_AVISO * 1000)
 }
-
-const cliente = ref<Cliente | null>(null)
 
 const naConta = computed(() => forma.value === "conta")
 
@@ -92,7 +95,7 @@ const resumoPagamento = computed(() => {
 })
 
 function noCarrinho(produtoId: number): number {
-  return carrinho.value.get(produtoId) ?? 0
+  return carrinhoStore.quantidade(produtoId)
 }
 
 /** Estoque `null` é produto não controlado; com número, o carrinho não passa do que existe. */
@@ -102,13 +105,15 @@ function podeAdicionar(produto: Produto): boolean {
 
 /** Quanto ainda cabe no carrinho — o que sobra na prateleira menos o que já está nele. */
 function restante(produto: Produto): number {
-  return produto.estoque === null ? Infinity : produto.estoque - noCarrinho(produto.id)
+  if (produto.estoque === null) return Infinity
+  // carrinho antigo pode ter mais do que o estoque de agora; nunca mostrar negativo
+  return Math.max(0, produto.estoque - noCarrinho(produto.id))
 }
 
 function adicionar(produto: Produto) {
   if (!podeAdicionar(produto)) return
   sucesso.value = null
-  carrinho.value.set(produto.id, (carrinho.value.get(produto.id) ?? 0) + 1)
+  carrinhoStore.alterar(produto.id, 1)
 }
 
 function aoTeclar(evento: KeyboardEvent) {
@@ -155,8 +160,10 @@ async function confirmar() {
     modalAberto.value = false
     // a grade precisa refletir a baixa da venda que acabou de sair
     await carregar(true)
-  } catch {
-    erroEnvio.value = "Não foi possível registrar a venda. Tente de novo."
+  } catch (e) {
+    // o carrinho agora sobrevive à navegação, então o estoque pode ter mudado no meio:
+    // o backend diz qual produto e quanto sobrou, e essa frase é melhor que a genérica
+    erroEnvio.value = mensagemDoErro(e, "Não foi possível registrar a venda. Tente de novo.")
   } finally {
     enviando.value = false
   }
@@ -166,18 +173,17 @@ function alterar(produtoId: number, delta: number) {
   const produto = produtos.value.find((p) => p.id === produtoId)
   // o "+" do painel é outra porta pro mesmo carrinho: a trava vale aqui também
   if (delta > 0 && produto && !podeAdicionar(produto)) return
-
-  const nova = (carrinho.value.get(produtoId) ?? 0) + delta
-  if (nova <= 0) carrinho.value.delete(produtoId)
-  else carrinho.value.set(produtoId, nova)
+  carrinhoStore.alterar(produtoId, delta)
 }
 
 function limpar() {
-  carrinho.value.clear()
+  carrinhoStore.limpar()
 }
 
+// o tamanho do mapa, não o de `itens`: este último nasce vazio até a grade carregar,
+// e ao voltar pra tela ia derrubar a forma de pagamento que o carrinho ainda tinha
 watch(
-  () => itens.value.length,
+  () => quantidades.value.size,
   (quantos) => {
     if (quantos === 0) forma.value = null
   },

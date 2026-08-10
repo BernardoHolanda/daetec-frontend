@@ -177,10 +177,12 @@ async function confirmarFechamento() {
     </div>
 
     <template v-else-if="conta">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-        <div
-          class="lg:border-linha flex flex-1 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6 lg:rounded-xl lg:border lg:bg-white lg:p-6"
-        >
+      <div
+        class="lg:border-linha flex flex-col gap-4 lg:flex-row lg:justify-between lg:gap-6 lg:rounded-xl lg:border lg:bg-white lg:p-6"
+      >
+        <!-- justify-between estica esta coluna na altura do card: o nome fica no topo
+             e a ação encosta no rodapé, sem depender de altura fixa -->
+        <div class="flex flex-col gap-4 lg:justify-between">
           <div class="flex items-center gap-3 lg:gap-4">
             <span
               class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-violet-200 text-base font-semibold text-violet-800 lg:h-14 lg:w-14 lg:text-xl"
@@ -192,50 +194,36 @@ async function confirmarFechamento() {
             </h1>
           </div>
 
-          <div
-            class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 lg:border-0 lg:bg-transparent lg:p-0 lg:text-right"
-          >
-            <p
-              class="text-[10px] font-semibold tracking-widest text-amber-800 uppercase lg:text-[11px]"
-            >
-              Total em aberto
-            </p>
-            <p
-              class="text-[44px] leading-none font-bold tracking-tight text-amber-800 tabular-nums lg:mt-1.5 lg:text-[56px]"
-            >
-              {{ formatarBRL(total) }}
-            </p>
-            <p class="mt-1 text-[13px] text-amber-700 lg:text-sm">
-              {{ consumos }} {{ consumos === 1 ? "consumo" : "consumos" }}
-              <template v-if="desde">· desde {{ desde }}</template>
-            </p>
-          </div>
-        </div>
-
-        <!-- painel de ação: no celular vira o bloco do rodapé, com outro texto -->
-        <aside
-          class="border-linha hidden w-80 shrink-0 flex-col gap-3 rounded-xl border bg-white p-5 lg:flex"
-        >
-          <p class="font-semibold">Recebeu o pagamento?</p>
-          <p class="text-tinta-suave text-sm leading-relaxed">
-            É ao fechar a conta que o valor <b class="text-tinta">entra como recebido</b> no
-            relatório do dia.
-          </p>
+          <!-- só o botão: o modal já explica o recebimento na hora que ele importa.
+               No celular o equivalente fica ancorado no rodapé -->
           <button
             type="button"
             :disabled="conta.vendas.length === 0"
-            class="h-13 rounded-lg bg-violet-600 text-[17px] font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:opacity-50"
+            class="hidden h-12 rounded-lg bg-violet-600 px-5 font-semibold text-white hover:bg-violet-700 focus-visible:ring-4 focus-visible:ring-violet-300 focus-visible:outline-none disabled:opacity-50 lg:block lg:self-start"
             @click="abrirFechamento"
           >
-            Fechar conta
+            Fechar conta · {{ formatarBRL(total) }}
           </button>
-          <RouterLink
-            :to="{ name: 'vender' }"
-            class="grid h-11 place-items-center rounded-lg border border-violet-300 text-[15px] font-semibold text-violet-800"
+        </div>
+
+        <div
+          class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5 lg:border-0 lg:bg-transparent lg:p-0 lg:text-right"
+        >
+          <p
+            class="text-[10px] font-semibold tracking-widest text-amber-800 uppercase lg:text-[11px]"
           >
-            Registrar novo consumo
-          </RouterLink>
-        </aside>
+            Total em aberto
+          </p>
+          <p
+            class="text-[44px] leading-none font-bold tracking-tight text-amber-800 tabular-nums lg:mt-1.5 lg:text-[56px]"
+          >
+            {{ formatarBRL(total) }}
+          </p>
+          <p class="mt-1 text-[13px] text-amber-700 lg:text-sm">
+            {{ consumos }} {{ consumos === 1 ? "consumo" : "consumos" }}
+            <template v-if="desde">· desde {{ desde }}</template>
+          </p>
+        </div>
       </div>
 
       <div
