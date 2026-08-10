@@ -17,7 +17,7 @@ import EstadoVazio from "../components/EstadoVazio.vue"
 import IconeNav from "../components/IconeNav.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 
-const COLUNAS = "lg:grid-cols-[1fr_200px_140px_200px]"
+const COLUNAS = "lg:grid-cols-[1fr_170px_130px_120px_190px]"
 
 const produtos = ref<Produto[]>([])
 const vendedores = ref<Vendedor[]>([])
@@ -31,6 +31,8 @@ const emEdicao = ref<Produto | null>(null)
 const nome = ref("")
 const preco = ref("")
 const vendedorId = ref<number | null>(null)
+// string vazia = não controlar o estoque; é o campo opcional do formulário
+const estoque = ref("")
 const salvando = ref(false)
 const erroAoSalvar = ref("")
 
@@ -49,8 +51,18 @@ const visiveis = computed(() => {
   return [...achados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
 })
 
+// em branco é válido (não controlar); preenchido tem que ser inteiro não negativo
+const estoqueValido = computed(
+  () =>
+    estoque.value === "" || (Number.isInteger(Number(estoque.value)) && Number(estoque.value) >= 0),
+)
+
 const formValido = computed(
-  () => nome.value.trim().length > 0 && Number(preco.value) > 0 && vendedorId.value !== null,
+  () =>
+    nome.value.trim().length > 0 &&
+    Number(preco.value) > 0 &&
+    vendedorId.value !== null &&
+    estoqueValido.value,
 )
 
 async function carregar() {
@@ -76,6 +88,8 @@ function abrir(produto: Produto | null) {
   nome.value = produto?.nome ?? ""
   preco.value = produto?.preco ?? ""
   vendedorId.value = produto?.vendedor.id ?? vendedores.value[0]?.id ?? null
+  // ?? "" e não || "": estoque 0 é um valor de verdade e não pode virar campo vazio
+  estoque.value = produto?.estoque?.toString() ?? ""
   erroAoSalvar.value = ""
   modalAberto.value = true
 }
@@ -86,6 +100,7 @@ async function salvar() {
     nome: nome.value.trim(),
     preco: preco.value,
     vendedor_id: vendedorId.value,
+    estoque: estoque.value === "" ? null : Number(estoque.value),
   }
   salvando.value = true
   erroAoSalvar.value = ""
@@ -212,6 +227,7 @@ onMounted(carregar)
         <span>Produto</span>
         <span>Dono</span>
         <span class="text-right">Preço</span>
+        <span class="text-right">Estoque</span>
         <span class="text-right">Ações</span>
       </div>
 
@@ -235,21 +251,43 @@ onMounted(carregar)
             </span>
           </div>
 
-          <div class="flex gap-2 lg:order-4 lg:justify-end">
-            <button
-              type="button"
-              class="h-9 rounded-lg border border-violet-300 px-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
-              @click="abrir(produto)"
+          <div class="flex items-center justify-between gap-3 lg:contents">
+            <!-- três estados: sem controle, esgotado e a contagem -->
+            <span
+              v-if="produto.estoque === null"
+              class="text-tinta-fraca text-[13px] lg:order-4 lg:text-right lg:text-sm"
             >
-              Editar
-            </button>
-            <button
-              type="button"
-              class="h-9 rounded-lg border border-red-300 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:ring-4 focus-visible:ring-red-200 focus-visible:outline-none"
-              @click="pedirRemocao(produto)"
+              Sem controle
+            </span>
+            <span
+              v-else-if="produto.estoque === 0"
+              class="rounded-md bg-amber-50 px-2 py-1 text-[13px] font-semibold text-amber-800 lg:order-4 lg:justify-self-end"
             >
-              Remover
-            </button>
+              Esgotado
+            </span>
+            <span v-else class="font-semibold tabular-nums lg:order-4 lg:text-right">
+              {{ produto.estoque }}
+              <span class="text-tinta-fraca font-normal">
+                {{ produto.estoque === 1 ? "unidade" : "unidades" }}
+              </span>
+            </span>
+
+            <div class="flex shrink-0 gap-2 lg:order-5 lg:justify-end">
+              <button
+                type="button"
+                class="h-9 rounded-lg border border-violet-300 px-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+                @click="abrir(produto)"
+              >
+                Editar
+              </button>
+              <button
+                type="button"
+                class="h-9 rounded-lg border border-red-300 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:ring-4 focus-visible:ring-red-200 focus-visible:outline-none"
+                @click="pedirRemocao(produto)"
+              >
+                Remover
+              </button>
+            </div>
           </div>
         </li>
       </ul>
@@ -287,6 +325,24 @@ onMounted(carregar)
             placeholder="0,00"
             class="border-linha-forte h-12 w-full rounded-lg border px-3.5 text-base tabular-nums outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
           />
+        </label>
+
+        <label class="flex flex-col gap-1.5">
+          <span class="text-sm font-semibold">
+            Estoque <span class="text-tinta-fraca font-normal">(opcional)</span>
+          </span>
+          <input
+            v-model="estoque"
+            type="number"
+            step="1"
+            min="0"
+            inputmode="numeric"
+            placeholder="Deixe em branco para não controlar"
+            class="border-linha-forte h-12 w-full rounded-lg border px-3.5 text-base tabular-nums outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200"
+          />
+          <span class="text-tinta-fraca text-[13px]">
+            Em branco: vende sem trava. <b>0</b> é esgotado e bloqueia a venda.
+          </span>
         </label>
 
         <label class="flex flex-col gap-1.5">

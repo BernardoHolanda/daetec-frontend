@@ -103,6 +103,8 @@ export interface Produto {
   nome: string
   preco: string
   vendedor: Vendedor
+  // null = estoque não controlado (vende à vontade); 0 = esgotado
+  estoque: number | null
 }
 
 export interface ProdutoCreate {
@@ -110,4 +112,5 @@ export interface ProdutoCreate {
   // string, não number: o backend recebe Decimal e float perderia centavo no caminho
   preco: string
   vendedor_id: number
+  estoque: number | null
 }
