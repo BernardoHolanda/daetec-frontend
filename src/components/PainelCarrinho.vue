@@ -14,6 +14,11 @@ defineEmits<{
 }>()
 
 const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quantidade, 0))
+
+/** O item já carrega o produto inteiro, então o estoque vem junto — sem prop nova. */
+function cabeMais(item: ItemCarrinho): boolean {
+  return item.produto.estoque === null || item.quantidade < item.produto.estoque
+}
 </script>
 
 <template>
@@ -64,7 +69,9 @@ const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quanti
             </span>
             <button
               type="button"
-              class="h-9 w-9 rounded-lg border border-violet-300 bg-violet-50 text-lg font-semibold text-violet-800"
+              :disabled="!cabeMais(item)"
+              :title="cabeMais(item) ? undefined : 'Não há mais em estoque'"
+              class="h-9 w-9 rounded-lg border border-violet-300 bg-violet-50 text-lg font-semibold text-violet-800 disabled:cursor-not-allowed disabled:opacity-40"
               :aria-label="`Adicionar um ${item.produto.nome}`"
               @click="$emit('alterar', item.produto.id, 1)"
             >

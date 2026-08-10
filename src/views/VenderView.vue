@@ -95,7 +95,18 @@ function noCarrinho(produtoId: number): number {
   return carrinho.value.get(produtoId) ?? 0
 }
 
+/** Estoque `null` é produto não controlado; com número, o carrinho não passa do que existe. */
+function podeAdicionar(produto: Produto): boolean {
+  return produto.estoque === null || noCarrinho(produto.id) < produto.estoque
+}
+
+/** Quanto ainda cabe no carrinho — o que sobra na prateleira menos o que já está nele. */
+function restante(produto: Produto): number {
+  return produto.estoque === null ? Infinity : produto.estoque - noCarrinho(produto.id)
+}
+
 function adicionar(produto: Produto) {
+  if (!podeAdicionar(produto)) return
   sucesso.value = null
   carrinho.value.set(produto.id, (carrinho.value.get(produto.id) ?? 0) + 1)
 }
@@ -142,6 +153,8 @@ async function confirmar() {
     mostrarSucesso({ total: formatarBRL(total.value), forma: resumo })
     limpar()
     modalAberto.value = false
+    // a grade precisa refletir a baixa da venda que acabou de sair
+    await carregar(true)
   } catch {
     erroEnvio.value = "Não foi possível registrar a venda. Tente de novo."
   } finally {
@@ -150,6 +163,10 @@ async function confirmar() {
 }
 
 function alterar(produtoId: number, delta: number) {
+  const produto = produtos.value.find((p) => p.id === produtoId)
+  // o "+" do painel é outra porta pro mesmo carrinho: a trava vale aqui também
+  if (delta > 0 && produto && !podeAdicionar(produto)) return
+
   const nova = (carrinho.value.get(produtoId) ?? 0) + delta
   if (nova <= 0) carrinho.value.delete(produtoId)
   else carrinho.value.set(produtoId, nova)
@@ -170,13 +187,15 @@ watch(forma, (escolhida) => {
   if (escolhida !== "conta") cliente.value = null
 })
 
-async function carregar() {
-  carregando.value = true
+async function carregar(silencioso = false) {
+  // silencioso: recarga pós-venda não troca a grade por esqueleto nem some com o aviso
+  if (!silencioso) carregando.value = true
   erro.value = false
   try {
     produtos.value = await listarProdutos()
   } catch {
-    erro.value = true
+    // a venda já foi gravada; não vale trocar a tela por um erro que não é dela
+    if (!silencioso) erro.value = true
   } finally {
     carregando.value = false
   }
@@ -230,11 +249,14 @@ onMounted(carregar)
         <li v-for="produto in produtosFiltrados" :key="produto.id">
           <button
             type="button"
-            class="flex min-h-22 w-full flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none lg:min-h-24 lg:p-3.5"
+            :disabled="!podeAdicionar(produto)"
+            class="flex min-h-22 w-full flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none disabled:cursor-not-allowed lg:min-h-24 lg:p-3.5"
             :class="
               noCarrinho(produto.id)
                 ? 'border-violet-600 bg-violet-50'
-                : 'border-linha bg-white hover:border-violet-300'
+                : podeAdicionar(produto)
+                  ? 'border-linha bg-white hover:border-violet-300'
+                  : 'border-linha bg-white opacity-55'
             "
             @click="adicionar(produto)"
           >
@@ -249,11 +271,22 @@ onMounted(carregar)
                 {{ noCarrinho(produto.id) }}
               </span>
             </span>
-            <span
-              class="text-[19px] font-bold tabular-nums lg:text-xl"
-              :class="noCarrinho(produto.id) > 0 && 'text-violet-800'"
-            >
-              {{ formatarBRL(paraCentavos(produto.preco)) }}
+            <span class="flex w-full items-baseline justify-between gap-2">
+              <span
+                class="text-[19px] font-bold tabular-nums lg:text-xl"
+                :class="noCarrinho(produto.id) > 0 && 'text-violet-800'"
+              >
+                {{ formatarBRL(paraCentavos(produto.preco)) }}
+              </span>
+
+              <!-- produto sem controle de estoque não mostra nada: não há o que contar -->
+              <span
+                v-if="produto.estoque !== null"
+                class="shrink-0 text-[13px] font-semibold tabular-nums"
+                :class="podeAdicionar(produto) ? 'text-tinta-fraca' : 'text-amber-700'"
+              >
+                {{ produto.estoque === 0 ? "Esgotado" : `${restante(produto)} rest.` }}
+              </span>
             </span>
           </button>
         </li>
