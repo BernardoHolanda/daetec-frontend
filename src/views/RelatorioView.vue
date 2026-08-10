@@ -141,8 +141,7 @@ onMounted(carregar)
       v-if="hoje && !ehHoje"
       class="border-linha bg-fundo text-tinta-suave rounded-lg border px-3.5 py-2.5 text-[13px] leading-snug"
     >
-      Dia fechado: só o que foi <b class="text-tinta">recebido</b> nessa data. Conta em aberto é
-      saldo de agora, não daquele dia — por isso aparece só no relatório de hoje.
+      Dia fechado: só o que foi <b class="text-tinta">recebido</b> nessa data.
     </p>
 
     <div v-if="carregando" aria-hidden="true" class="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
@@ -270,15 +269,12 @@ onMounted(carregar)
             <div class="flex items-baseline justify-between gap-3">
               <span class="flex items-center gap-2 font-semibold text-amber-800">
                 <IconeNav nome="conta" class="text-conta" />
-                Conta (fiado)
+                Conta
               </span>
               <span class="font-bold text-amber-800 tabular-nums lg:text-[19px]">
                 {{ formatarBRL(emConta) }}
               </span>
             </div>
-            <p class="text-[13px] leading-snug font-medium text-amber-700">
-              Fora do gráfico e fora do recebido — o dinheiro ainda não entrou.
-            </p>
           </div>
         </section>
 
