@@ -77,6 +77,27 @@ export interface ContasAbertas {
   contas: ContaAberta[]
 }
 
+export interface Devedor {
+  cliente_id: number
+  nome: string
+  valor: string
+}
+
+export interface VendedorRelatorio {
+  vendedor_id: number
+  nome: string
+  recebido_total: string
+  // Partial: o GROUP BY do backend só devolve a forma que teve venda
+  recebido_por_forma: Partial<Record<FormaPagamento, string>>
+  conta_em_aberto: string
+  devedores: Devedor[]
+}
+
+export interface Relatorio {
+  data: string
+  vendedores: VendedorRelatorio[]
+}
+
 export interface Produto {
   id: number
   nome: string
