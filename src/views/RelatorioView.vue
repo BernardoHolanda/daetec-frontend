@@ -8,6 +8,7 @@ import ErroAoCarregar from "../components/ErroAoCarregar.vue"
 import EstadoVazio from "../components/EstadoVazio.vue"
 import IconeNav from "../components/IconeNav.vue"
 import SeletorDia from "../components/SeletorDia.vue"
+import VendasDoDia from "../components/VendasDoDia.vue"
 
 // classes literais: o Tailwind lê o código como texto, `bg-${forma}` não geraria nada
 const CORES: Record<FormaPagamento, { icone: string; barra: string }> = {
@@ -430,5 +431,9 @@ onMounted(carregar)
         </ul>
       </section>
     </template>
+
+    <!-- fora do v-else de propósito: cancelar a última venda do dia zera os totais, e a
+         lista precisa continuar na tela pra você ver o que acabou de desfazer -->
+    <VendasDoDia v-if="hoje && !carregando && !erro" :dia="dia" @cancelada="carregar" />
   </main>
 </template>
