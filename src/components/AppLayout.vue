@@ -3,11 +3,13 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "../stores/auth"
 import { useUsuarioStore } from "../stores/usuario"
+import { useCarrinhoStore } from "../stores/carrinho"
 import { CADASTROS, OPERACAO, visivelPara, type ItemNav } from "../router/navegacao"
 import IconeNav from "./IconeNav.vue"
 
 const auth = useAuthStore()
 const usuarioStore = useUsuarioStore()
+const carrinhoStore = useCarrinhoStore()
 const router = useRouter()
 
 function visivel(item: ItemNav) {
@@ -39,6 +41,8 @@ onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
 function sair() {
   auth.logout()
   usuarioStore.limpar()
+  // o carrinho não é mais da tela, é da sessão: quem entrar depois não herda venda alheia
+  carrinhoStore.limpar()
   router.push({ name: "login" })
 }
 </script>
