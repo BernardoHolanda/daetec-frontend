@@ -34,10 +34,10 @@ const router = createRouter({
           ],
         },
         {
+          // índice do celular: o próprio conteúdo já filtra por papel
           path: "cadastros",
           name: "cadastros",
           component: () => import("../views/CadastrosView.vue"),
-          meta: { admin: true },
         },
         {
           path: "produtos",
@@ -46,10 +46,11 @@ const router = createRouter({
           meta: { admin: true },
         },
         {
+          // sem meta.admin: o comum entra pra cadastrar cliente novo (o backend
+          // libera só o POST; editar e remover continuam barrados lá)
           path: "clientes",
           name: "clientes",
           component: () => import("../views/ClientesView.vue"),
-          meta: { admin: true },
         },
         {
           path: "vendedores",

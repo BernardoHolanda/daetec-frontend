@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "../stores/auth"
 import { useUsuarioStore } from "../stores/usuario"
-import { CADASTROS, OPERACAO, type ItemNav } from "../router/navegacao"
+import { CADASTROS, OPERACAO, visivelPara, type ItemNav } from "../router/navegacao"
 import IconeNav from "./IconeNav.vue"
 
 const auth = useAuthStore()
@@ -11,15 +11,16 @@ const usuarioStore = useUsuarioStore()
 const router = useRouter()
 
 function visivel(item: ItemNav) {
-  if (!item.papel) return true
-  return item.papel === (usuarioStore.isAdmin ? "admin" : "comum")
+  return visivelPara(item, usuarioStore.isAdmin)
 }
 
 const itensOperacao = computed(() => OPERACAO.filter(visivel))
+const itensCadastros = computed(() => CADASTROS.filter(visivel))
 
 const itensCelular = computed<ItemNav[]>(() => [
   ...itensOperacao.value.filter((item) => item.celular),
-  ...(usuarioStore.isAdmin ? [{ nome: "cadastros", rotulo: "Cadastros" }] : []),
+  // a aba existe se sobrou pelo menos um cadastro — pro vendedor, só Clientes
+  ...(itensCadastros.value.length > 0 ? [{ nome: "cadastros", rotulo: "Cadastros" }] : []),
 ])
 
 const username = computed(() => usuarioStore.usuario?.username ?? "")
@@ -73,12 +74,12 @@ function sair() {
           {{ item.rotulo }}
         </RouterLink>
 
-        <template v-if="usuarioStore.isAdmin">
+        <template v-if="itensCadastros.length > 0">
           <p class="text-tinta-fraca mt-4 mb-1 px-3 text-[10px] font-semibold tracking-widest">
             CADASTROS
           </p>
           <RouterLink
-            v-for="item in CADASTROS"
+            v-for="item in itensCadastros"
             :key="item.nome"
             :to="{ name: item.nome }"
             class="text-tinta-suave flex min-h-11 items-center gap-2.5 rounded-[10px] px-3 py-2.5 text-[15px] font-medium"

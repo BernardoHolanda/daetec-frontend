@@ -21,7 +21,15 @@ export const OPERACAO: ItemNav[] = [
 ]
 
 export const CADASTROS: ItemNav[] = [
-  { nome: "produtos", rotulo: "Produtos" },
+  { nome: "produtos", rotulo: "Produtos", papel: "admin" },
+  // sem papel: o vendedor precisa cadastrar cliente na hora de fiar; editar e remover
+  // continuam só do admin, e quem barra de verdade é o backend
   { nome: "clientes", rotulo: "Clientes" },
-  { nome: "vendedores", rotulo: "Vendedores" },
+  { nome: "vendedores", rotulo: "Vendedores", papel: "admin" },
 ]
+
+/** Item sem `papel` é de todo mundo; com `papel`, só de quem tem aquele papel. */
+export function visivelPara(item: ItemNav, isAdmin: boolean): boolean {
+  if (!item.papel) return true
+  return item.papel === (isAdmin ? "admin" : "comum")
+}

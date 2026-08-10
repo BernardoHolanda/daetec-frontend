@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
+import { useUsuarioStore } from "../stores/usuario"
 import {
   atualizarCliente,
   criarCliente,
@@ -16,7 +17,14 @@ import ErroAoCarregar from "../components/ErroAoCarregar.vue"
 import EstadoVazio from "../components/EstadoVazio.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 
-const COLUNAS = "lg:grid-cols-[1fr_180px_160px]"
+const usuarioStore = useUsuarioStore()
+
+// o comum entra aqui só pra cadastrar quem vai fiar; alterar e apagar são do admin
+const podeAlterar = computed(() => usuarioStore.isAdmin)
+
+const COLUNAS = computed(() =>
+  podeAlterar.value ? "lg:grid-cols-[1fr_180px_160px]" : "lg:grid-cols-[1fr_180px]",
+)
 
 const clientes = ref<Cliente[]>([])
 // cliente_id → centavos em aberto; quem não está no mapa não deve nada
@@ -174,7 +182,7 @@ onMounted(carregar)
       >
         <span>Cliente</span>
         <span class="text-right">Em aberto</span>
-        <span class="text-right">Ações</span>
+        <span v-if="podeAlterar" class="text-right">Ações</span>
       </div>
 
       <ul
@@ -198,7 +206,7 @@ onMounted(carregar)
           </span>
           <span v-else class="text-tinta-fraca shrink-0 text-sm lg:text-right">Sem conta</span>
 
-          <div class="flex shrink-0 gap-2 lg:justify-self-end">
+          <div v-if="podeAlterar" class="flex shrink-0 gap-2 lg:justify-self-end">
             <button
               type="button"
               class="h-9 rounded-lg border border-violet-300 px-3 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
