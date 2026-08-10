@@ -78,7 +78,7 @@ onMounted(carregar)
           <p class="text-[11px] font-semibold tracking-widest text-amber-800 uppercase">
             Total geral em aberto
           </p>
-          <p class="text-[13px] text-amber-700">não entra no recebido</p>
+          <p class="text-[13px] text-amber-700">contas ainda não fechadas</p>
         </div>
         <p class="text-[28px] font-bold tracking-tight text-amber-800 tabular-nums lg:text-[40px]">
           {{ formatarBRL(total) }}
