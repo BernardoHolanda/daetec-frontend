@@ -34,10 +34,10 @@ npm run dev
 
 ## Variáveis de ambiente
 
-| Arquivo | Quando é usado | Conteúdo |
-|---|---|---|
-| `.env` | `npm run dev` | `VITE_API_BASE_URL=http://localhost:8000` |
-| `.env.production` | `npm run build` | a URL da API no Cloud Run |
+| Arquivo           | Quando é usado  | Conteúdo                                  |
+| ----------------- | --------------- | ----------------------------------------- |
+| `.env`            | `npm run dev`   | `VITE_API_BASE_URL=http://localhost:8000` |
+| `.env.production` | `npm run build` | a URL da API no Cloud Run                 |
 
 O Vite carrega o `.env` e **sobrepõe** com o `.env.production` quando o modo é produção —
 que é o que o `build` faz. Assim o desenvolvimento continua apontando pro localhost sem
@@ -58,16 +58,16 @@ do axios. Guarda de rota assíncrona carrega o `/usuarios/me` antes de decidir o
 **Papéis** — o **admin** faz tudo; o **comum** vende, consulta e cadastra cliente.
 Esconder rota é conveniência: quem barra de verdade é o backend (403).
 
-| Tela | Rota | Quem vê | O que faz |
-|---|---|---|---|
-| **Registrar venda** | `/vender` | todos | Grade de produtos com busca sem acento, carrinho, forma de pagamento e venda **na conta** (fiado). O carrinho é limitado pelo estoque e sobrevive à troca de tela. |
-| **Contas em aberto** | `/contas` | todos | Devedores com busca e três ordenações. |
-| **Detalhe da conta** | `/contas/:id` | todos | Histórico de consumo e **fechamento** da conta com recibo na tela. |
-| **Relatório do dia** | `/relatorio` | admin | Totais, quebra por forma de pagamento e por vendedor, devedores, e as vendas do dia (com cancelamento). Seletor de dia próprio, com navegação dias → meses → anos. |
-| **Produtos** | `/produtos` | admin | CRUD + definição do **estoque** (opcional). |
-| **Clientes** | `/clientes` | todos | Cadastrar é de todos (fiar exige criar na hora); editar e remover, só admin. |
-| **Vendedores** | `/vendedores` | admin | CRUD dos donos da mercadoria. |
-| **Estoque** | `/estoque` | todos | Só leitura: *Sem controle* / *Esgotado* / *N unidades*. |
+| Tela                 | Rota          | Quem vê | O que faz                                                                                                                                                          |
+| -------------------- | ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Registrar venda**  | `/vender`     | todos   | Grade de produtos com busca sem acento, carrinho, forma de pagamento e venda **na conta** (fiado). O carrinho é limitado pelo estoque e sobrevive à troca de tela. |
+| **Contas em aberto** | `/contas`     | todos   | Devedores com busca e três ordenações.                                                                                                                             |
+| **Detalhe da conta** | `/contas/:id` | todos   | Histórico de consumo e **fechamento** da conta com recibo na tela.                                                                                                 |
+| **Relatório do dia** | `/relatorio`  | admin   | Totais, quebra por forma de pagamento e por vendedor, devedores, e as vendas do dia (com cancelamento). Seletor de dia próprio, com navegação dias → meses → anos. |
+| **Produtos**         | `/produtos`   | admin   | CRUD + definição do **estoque** (opcional).                                                                                                                        |
+| **Clientes**         | `/clientes`   | todos   | Cadastrar é de todos (fiar exige criar na hora); editar e remover, só admin.                                                                                       |
+| **Vendedores**       | `/vendedores` | admin   | CRUD dos donos da mercadoria.                                                                                                                                      |
+| **Estoque**          | `/estoque`    | todos   | Só leitura: _Sem controle_ / _Esgotado_ / _N unidades_.                                                                                                            |
 
 **Estoque** — `null` significa produto **não controlado** (vende à vontade) e `0`
 significa **esgotado**. Vender dá baixa; cancelar devolve. Como o carrinho já trava no
@@ -81,13 +81,13 @@ tabela no desktop), não duas versões com uma escondida.
 
 ## Scripts
 
-| Comando | O quê |
-|---|---|
-| `npm run dev` | servidor de desenvolvimento (Vite + HMR) |
-| `npm run build` | type-check (`vue-tsc`) + build de produção em `dist/` |
-| `npm run preview` | serve o build de produção localmente |
-| `npm run lint` | checa o código com ESLint (bugs/qualidade) |
-| `npm run format` | formata tudo com Prettier |
+| Comando           | O quê                                                 |
+| ----------------- | ----------------------------------------------------- |
+| `npm run dev`     | servidor de desenvolvimento (Vite + HMR)              |
+| `npm run build`   | type-check (`vue-tsc`) + build de produção em `dist/` |
+| `npm run preview` | serve o build de produção localmente                  |
+| `npm run lint`    | checa o código com ESLint (bugs/qualidade)            |
+| `npm run format`  | formata tudo com Prettier                             |
 
 ## Qualidade de código
 
@@ -110,11 +110,11 @@ para aceitar um `--write`.
 O deploy é automático: **Cloudflare Pages** observa o repositório e publica a cada push na
 branch principal.
 
-| Configuração no painel | Valor |
-|---|---|
-| Comando de build | `npm run build` |
-| Diretório de saída | `dist` |
-| `NODE_VERSION` | `22` — a mesma do CI e do Dev Container |
+| Configuração no painel | Valor                                   |
+| ---------------------- | --------------------------------------- |
+| Comando de build       | `npm run build`                         |
+| Diretório de saída     | `dist`                                  |
+| `NODE_VERSION`         | `22` — a mesma do CI e do Dev Container |
 
 Manter a versão do Node igual nos três lugares evita o clássico "passa no CI e falha no
 deploy": o Cloudflare usa uma versão padrão própria se ninguém disser qual usar.
