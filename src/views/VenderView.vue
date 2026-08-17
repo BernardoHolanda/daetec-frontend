@@ -44,8 +44,11 @@ const hoje = new Date().toLocaleDateString("pt-BR", {
 
 const produtosFiltrados = computed(() => {
   const termo = normalizar(busca.value.trim())
-  if (!termo) return produtos.value
-  return produtos.value.filter((p) => normalizar(p.nome).includes(termo))
+  const achados = termo
+    ? produtos.value.filter((p) => normalizar(p.nome).includes(termo))
+    : produtos.value
+  // cópia antes do sort: ele ordena no lugar, e sem busca `achados` é o próprio ref
+  return [...achados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
 })
 
 // produto removido do cadastro enquanto o carrinho esperava simplesmente some da lista
