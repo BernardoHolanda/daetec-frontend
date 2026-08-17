@@ -350,14 +350,24 @@ onMounted(carregar)
 
       <!-- min-h-0: item de flex não encolhe abaixo do conteúdo por padrão, e sem isso
            o overflow-y-auto lá dentro nunca chega a valer -->
-      <PainelCarrinho
-        :itens="itens"
-        class="lg:min-h-0 lg:flex-1"
-        @alterar="alterar"
-        @limpar="limpar"
-      />
+      <PainelCarrinho :itens="itens" class="lg:min-h-0 lg:flex-1" @alterar="alterar" />
 
-      <SeletorPagamento v-model="forma" :desabilitado="itens.length === 0" />
+      <SeletorPagamento v-model="forma" :desabilitado="itens.length === 0">
+        <!-- sempre renderizado, só desabilitado: sumir e voltar empurraria a grade de
+             pagamento pra baixo a cada primeiro item -->
+        <template #acao>
+          <button
+            type="button"
+            :disabled="itens.length === 0"
+            title="Remove todos os itens do carrinho (Esc)"
+            class="border-linha text-tinta-suave flex shrink-0 items-center gap-1.5 rounded-lg border bg-white py-1.5 pr-3 pl-2.5 text-[13px] font-semibold focus-visible:ring-4 focus-visible:ring-red-100 focus-visible:outline-none enabled:border-red-300 enabled:text-red-700 enabled:hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+            @click="limpar"
+          >
+            <IconeNav nome="lixeira" />
+            Limpar carrinho
+          </button>
+        </template>
+      </SeletorPagamento>
 
       <SeletorCliente v-if="naConta" v-model="cliente" />
 

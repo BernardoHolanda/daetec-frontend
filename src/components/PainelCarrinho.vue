@@ -10,7 +10,6 @@ const props = defineProps<{
 
 defineEmits<{
   alterar: [produtoId: number, delta: number]
-  limpar: []
 }>()
 
 const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quantidade, 0))
@@ -41,59 +40,49 @@ function cabeMais(item: ItemCarrinho): boolean {
       <p class="text-tinta-suave max-w-55 text-sm">Toque em um produto para adicionar.</p>
     </div>
 
-    <template v-else>
-      <!-- é só esta lista que rola: o título e o "Limpar carrinho" ficam parados.
-           pr-1 afasta os cartões da barra de rolagem -->
-      <ul class="flex flex-col gap-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
-        <li
-          v-for="item in itens"
-          :key="item.produto.id"
-          class="border-linha flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3"
-        >
-          <div class="min-w-0 flex-1">
-            <p class="truncate font-semibold">{{ item.produto.nome }}</p>
-            <p class="text-tinta-suave text-[13px] tabular-nums">
-              {{ formatarBRL(item.unitario) }} cada
-            </p>
-          </div>
-
-          <div class="flex shrink-0 items-center gap-1.5">
-            <button
-              type="button"
-              class="border-linha-forte text-tinta-suave h-9 w-9 rounded-lg border text-lg font-semibold"
-              :aria-label="`Tirar um ${item.produto.nome}`"
-              @click="$emit('alterar', item.produto.id, -1)"
-            >
-              −
-            </button>
-            <span class="min-w-6 text-center text-[17px] font-semibold tabular-nums">
-              {{ item.quantidade }}
-            </span>
-            <button
-              type="button"
-              :disabled="!cabeMais(item)"
-              :title="cabeMais(item) ? undefined : 'Não há mais em estoque'"
-              class="h-9 w-9 rounded-lg border border-violet-300 bg-violet-50 text-lg font-semibold text-violet-800 disabled:cursor-not-allowed disabled:opacity-40"
-              :aria-label="`Adicionar um ${item.produto.nome}`"
-              @click="$emit('alterar', item.produto.id, 1)"
-            >
-              +
-            </button>
-          </div>
-
-          <span class="w-20 shrink-0 text-right text-[17px] font-bold tabular-nums">
-            {{ formatarBRL(item.subtotal) }}
-          </span>
-        </li>
-      </ul>
-
-      <button
-        type="button"
-        class="self-start px-1 text-sm font-semibold text-red-700"
-        @click="$emit('limpar')"
+    <!-- é só esta lista que rola: o cabeçalho fica parado.
+         pr-1 afasta os cartões da barra de rolagem -->
+    <ul v-else class="flex flex-col gap-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
+      <li
+        v-for="item in itens"
+        :key="item.produto.id"
+        class="border-linha flex items-center gap-3 rounded-xl border bg-white px-3.5 py-3"
       >
-        Limpar carrinho
-      </button>
-    </template>
+        <div class="min-w-0 flex-1">
+          <p class="truncate font-semibold">{{ item.produto.nome }}</p>
+          <p class="text-tinta-suave text-[13px] tabular-nums">
+            {{ formatarBRL(item.unitario) }} cada
+          </p>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            class="border-linha-forte text-tinta-suave h-9 w-9 rounded-lg border text-lg font-semibold"
+            :aria-label="`Tirar um ${item.produto.nome}`"
+            @click="$emit('alterar', item.produto.id, -1)"
+          >
+            −
+          </button>
+          <span class="min-w-6 text-center text-[17px] font-semibold tabular-nums">
+            {{ item.quantidade }}
+          </span>
+          <button
+            type="button"
+            :disabled="!cabeMais(item)"
+            :title="cabeMais(item) ? undefined : 'Não há mais em estoque'"
+            class="h-9 w-9 rounded-lg border border-violet-300 bg-violet-50 text-lg font-semibold text-violet-800 disabled:cursor-not-allowed disabled:opacity-40"
+            :aria-label="`Adicionar um ${item.produto.nome}`"
+            @click="$emit('alterar', item.produto.id, 1)"
+          >
+            +
+          </button>
+        </div>
+
+        <span class="w-20 shrink-0 text-right text-[17px] font-bold tabular-nums">
+          {{ formatarBRL(item.subtotal) }}
+        </span>
+      </li>
+    </ul>
   </section>
 </template>
