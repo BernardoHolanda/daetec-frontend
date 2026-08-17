@@ -321,8 +321,11 @@ onMounted(carregar)
       </ul>
     </main>
 
+    <!-- mesmo padrão da aside do menu: sticky + h-screen pra não esticar com a grade
+         e sumir no scroll. overflow-y-auto é só rede de segurança pra tela muito baixa —
+         quem rola no uso normal é a lista de itens, não o painel -->
     <aside
-      class="border-linha flex flex-col gap-5 bg-white p-4 lg:w-103 lg:shrink-0 lg:border-l lg:p-6"
+      class="border-linha flex flex-col gap-5 bg-white p-4 lg:sticky lg:top-0 lg:h-screen lg:w-103 lg:shrink-0 lg:overflow-y-auto lg:border-l lg:p-6"
     >
       <Transition
         enter-active-class="transition duration-200"
@@ -345,7 +348,14 @@ onMounted(carregar)
         </div>
       </Transition>
 
-      <PainelCarrinho :itens="itens" class="lg:flex-1" @alterar="alterar" @limpar="limpar" />
+      <!-- min-h-0: item de flex não encolhe abaixo do conteúdo por padrão, e sem isso
+           o overflow-y-auto lá dentro nunca chega a valer -->
+      <PainelCarrinho
+        :itens="itens"
+        class="lg:min-h-0 lg:flex-1"
+        @alterar="alterar"
+        @limpar="limpar"
+      />
 
       <SeletorPagamento v-model="forma" :desabilitado="itens.length === 0" />
 

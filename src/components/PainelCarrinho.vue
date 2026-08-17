@@ -32,7 +32,7 @@ function cabeMais(item: ItemCarrinho): boolean {
 
     <div
       v-if="itens.length === 0"
-      class="border-linha-forte flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed p-6 text-center lg:flex-1"
+      class="border-linha-forte flex flex-col items-center justify-center gap-2.5 rounded-xl border border-dashed p-6 text-center lg:min-h-0 lg:flex-1"
     >
       <div class="grid h-11 w-11 place-items-center rounded-xl bg-violet-50 text-violet-400">
         <IconeNav nome="carrinho" />
@@ -42,7 +42,9 @@ function cabeMais(item: ItemCarrinho): boolean {
     </div>
 
     <template v-else>
-      <ul class="flex flex-col gap-2 lg:flex-1">
+      <!-- é só esta lista que rola: o título e o "Limpar carrinho" ficam parados.
+           pr-1 afasta os cartões da barra de rolagem -->
+      <ul class="flex flex-col gap-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
         <li
           v-for="item in itens"
           :key="item.produto.id"
