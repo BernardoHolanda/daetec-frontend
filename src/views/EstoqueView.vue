@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from "vue"
 import { listarProdutos } from "../services/produtos"
 import { normalizar } from "../utils/texto"
+import { filtrarProdutos, vendedoresComProduto, type Disponibilidade } from "../utils/produtos"
 import type { Produto } from "../types/api"
 import CampoBusca from "../components/CampoBusca.vue"
 import ErroAoCarregar from "../components/ErroAoCarregar.vue"
 import EstadoVazio from "../components/EstadoVazio.vue"
+import FiltroProdutos from "../components/FiltroProdutos.vue"
 
 const COLUNAS = "lg:grid-cols-[1fr_220px_180px]"
 
@@ -13,14 +15,28 @@ const produtos = ref<Produto[]>([])
 const carregando = ref(true)
 const erro = ref(false)
 const busca = ref("")
+const disponibilidade = ref<Disponibilidade>("todos")
+const vendedorFiltro = ref<number | null>(null)
+
+const vendedores = computed(() => vendedoresComProduto(produtos.value))
 
 const visiveis = computed(() => {
   const termo = normalizar(busca.value.trim())
   const achados = termo
     ? produtos.value.filter((p) => normalizar(p.nome).includes(termo))
     : produtos.value
-  return [...achados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+  const filtrados = filtrarProdutos(achados, {
+    disponibilidade: disponibilidade.value,
+    vendedorId: vendedorFiltro.value,
+  })
+  return [...filtrados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
 })
+
+function limparFiltros() {
+  busca.value = ""
+  disponibilidade.value = "todos"
+  vendedorFiltro.value = null
+}
 
 const esgotados = computed(() => produtos.value.filter((p) => p.estoque === 0).length)
 
@@ -58,6 +74,13 @@ onMounted(carregar)
       <CampoBusca v-model="busca" rotulo="Buscar produto" class="lg:w-80" />
     </div>
 
+    <FiltroProdutos
+      v-if="!carregando && !erro && produtos.length > 0"
+      v-model:disponibilidade="disponibilidade"
+      v-model:vendedor-id="vendedorFiltro"
+      :vendedores="vendedores"
+    />
+
     <ul v-if="carregando" aria-hidden="true" class="flex flex-col gap-2">
       <li
         v-for="n in 5"
@@ -83,9 +106,17 @@ onMounted(carregar)
       O estoque acompanha o que está em Produtos — cadastre um item por lá primeiro.
     </EstadoVazio>
 
-    <p v-else-if="visiveis.length === 0" class="text-tinta-suave py-10 text-center">
-      Nenhum produto com “{{ busca.trim() }}”.
-    </p>
+    <!-- o vazio agora pode vir da busca ou dos filtros, e a saída é a mesma: limpar tudo -->
+    <div v-else-if="visiveis.length === 0" class="flex flex-col items-center gap-3 py-10">
+      <p class="text-tinta-suave text-center">Nenhum produto com esses filtros.</p>
+      <button
+        type="button"
+        class="h-10 rounded-lg border border-violet-300 px-4 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+        @click="limparFiltros"
+      >
+        Limpar filtros
+      </button>
+    </div>
 
     <template v-else>
       <div

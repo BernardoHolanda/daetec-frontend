@@ -10,10 +10,12 @@ import { listarVendedores } from "../services/vendedores"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
 import { normalizar } from "../utils/texto"
 import { mensagemDoErro } from "../utils/erro"
+import { filtrarProdutos, vendedoresComProduto, type Disponibilidade } from "../utils/produtos"
 import type { Produto, Vendedor } from "../types/api"
 import CampoBusca from "../components/CampoBusca.vue"
 import ErroAoCarregar from "../components/ErroAoCarregar.vue"
 import EstadoVazio from "../components/EstadoVazio.vue"
+import FiltroProdutos from "../components/FiltroProdutos.vue"
 import IconeNav from "../components/IconeNav.vue"
 import ModalConfirmacao from "../components/ModalConfirmacao.vue"
 
@@ -24,6 +26,8 @@ const vendedores = ref<Vendedor[]>([])
 const carregando = ref(true)
 const erro = ref(false)
 const busca = ref("")
+const disponibilidade = ref<Disponibilidade>("todos")
+const vendedorFiltro = ref<number | null>(null)
 
 const modalAberto = ref(false)
 // null = criando; um produto = editando aquele
@@ -43,13 +47,27 @@ const erroAoRemover = ref("")
 // sem dono cadastrado não dá pra criar produto: o vendedor_id é obrigatório na API
 const semVendedores = computed(() => vendedores.value.length === 0)
 
+// tirado dos produtos, não do `vendedores`: aquele é a lista do modal, que precisa de todo
+// dono possível pra atribuir um; aqui, vendedor sem produto só ofereceria um filtro vazio
+const vendedoresDoFiltro = computed(() => vendedoresComProduto(produtos.value))
+
 const visiveis = computed(() => {
   const termo = normalizar(busca.value.trim())
   const achados = termo
     ? produtos.value.filter((p) => normalizar(p.nome).includes(termo))
     : produtos.value
-  return [...achados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
+  const filtrados = filtrarProdutos(achados, {
+    disponibilidade: disponibilidade.value,
+    vendedorId: vendedorFiltro.value,
+  })
+  return [...filtrados].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
 })
+
+function limparFiltros() {
+  busca.value = ""
+  disponibilidade.value = "todos"
+  vendedorFiltro.value = null
+}
 
 // em branco é válido (não controlar); preenchido tem que ser inteiro não negativo
 const estoqueValido = computed(
@@ -164,6 +182,13 @@ onMounted(carregar)
       </div>
     </div>
 
+    <FiltroProdutos
+      v-if="!carregando && !erro && produtos.length > 0"
+      v-model:disponibilidade="disponibilidade"
+      v-model:vendedor-id="vendedorFiltro"
+      :vendedores="vendedoresDoFiltro"
+    />
+
     <ul v-if="carregando" aria-hidden="true" class="flex flex-col gap-2">
       <li
         v-for="n in 5"
@@ -215,9 +240,17 @@ onMounted(carregar)
       </template>
     </EstadoVazio>
 
-    <p v-else-if="visiveis.length === 0" class="text-tinta-suave py-10 text-center">
-      Nenhum produto com “{{ busca.trim() }}”.
-    </p>
+    <!-- o vazio agora pode vir da busca ou dos filtros, e a saída é a mesma: limpar tudo -->
+    <div v-else-if="visiveis.length === 0" class="flex flex-col items-center gap-3 py-10">
+      <p class="text-tinta-suave text-center">Nenhum produto com esses filtros.</p>
+      <button
+        type="button"
+        class="h-10 rounded-lg border border-violet-300 px-4 text-sm font-semibold text-violet-800 hover:bg-violet-50 focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+        @click="limparFiltros"
+      >
+        Limpar filtros
+      </button>
+    </div>
 
     <template v-else>
       <div
