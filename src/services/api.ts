@@ -14,6 +14,9 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// 401 = token vencido ou inválido: derruba a sessão e manda pro login.
+// A exceção é a própria tela de login, onde 401 é só senha errada — redirecionar ali
+// recarregaria a página e engoliria a mensagem de erro
 api.interceptors.response.use(
   (resposta) => resposta,
   (erro) => {

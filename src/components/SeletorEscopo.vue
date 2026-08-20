@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Escopo de datas: duas pontas ligadas por uma linha, cada uma abrindo o calendário.
+ *
+ * Arrastar uma ponta além da outra puxa a outra junto, virando dia único, em vez de
+ * recusar o clique. `max` trava o futuro.
+ */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { formatarData } from "../utils/data"
 import IconeNav from "./IconeNav.vue"
@@ -153,7 +159,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
 
 <template>
   <div class="relative shrink-0">
-    <!-- mesma caixa que o seletor de dia usava: borda, fundo branco, canto arredondado -->
+    <!-- caixa de campo: a borda e o fundo branco dizem que ali se clica -->
     <div class="border-linha-forte rounded-lg border bg-white px-3.5 pt-2 pb-2.5 lg:w-83">
       <div class="mb-1.5 flex items-baseline justify-between gap-2">
         <p class="text-tinta-fraca text-[10px] font-semibold tracking-widest uppercase">

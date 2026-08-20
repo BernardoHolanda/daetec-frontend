@@ -1,4 +1,11 @@
 <script setup lang="ts">
+/**
+ * Registrar venda: grade de produtos à esquerda, carrinho fixo à direita.
+ *
+ * O carrinho mora na store, não aqui — sair pra consultar uma conta não pode desfazer a
+ * venda em montagem. O estoque trava a adição em duas portas (cartão e painel), mas quem
+ * decide de verdade é o backend.
+ */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { storeToRefs } from "pinia"
 import { listarProdutos } from "../services/produtos"

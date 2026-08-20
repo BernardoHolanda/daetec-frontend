@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Escolha do cliente na venda fiada, com busca e cadastro na hora.
+ */
 import { computed, onMounted, ref } from "vue"
 import { listarClientes } from "../services/clientes"
 import { normalizar } from "../utils/texto"

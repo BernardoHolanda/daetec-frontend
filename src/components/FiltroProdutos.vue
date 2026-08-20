@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Filtro de produtos: balões de disponibilidade mais uma lista de vendedores.
+ *
+ * Os dois v-model são independentes e se combinam — dá pra ver só o esgotado de um dono.
+ */
 import type { Vendedor } from "../types/api"
 import type { Disponibilidade } from "../utils/produtos"
 

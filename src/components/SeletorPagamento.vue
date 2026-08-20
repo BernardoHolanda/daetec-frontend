@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Escolha da forma de pagamento, com o slot `acao` pra ação ao lado do título.
+ */
 import { computed } from "vue"
 import IconeNav from "./IconeNav.vue"
 import { ROTULO_PAGAMENTO, ehFormaAVista } from "../utils/pagamento"

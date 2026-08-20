@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Seção com título que abre e fecha. O slot `acao` põe controle no cabeçalho.
+ *
+ * O conteúdo é desmontado ao fechar, não escondido.
+ */
 import IconeNav from "./IconeNav.vue"
 
 defineProps<{ titulo: string; subtitulo?: string }>()

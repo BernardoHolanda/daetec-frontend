@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Lista as vendas do escopo, com cancelamento, paginação e rolagem própria.
+ *
+ * Filtra por data de registro, não de pagamento: um fiado acertado depois aparece no dia
+ * em que foi lançado, e não no dia em que virou dinheiro no relatório.
+ */
 import { computed, ref, watch } from "vue"
 import { cancelarVenda, listarVendasDoEscopo } from "../services/vendas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"

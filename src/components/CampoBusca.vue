@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Campo de busca com ícone e botão de limpar. v-model no termo digitado.
+ */
 import IconeNav from "./IconeNav.vue"
 
 // rotulo serve de placeholder e de nome acessível — são a mesma frase em todas as telas

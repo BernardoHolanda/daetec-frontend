@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Índice dos cadastros, só no celular — no desktop eles moram na lateral.
+ */
 import { computed } from "vue"
 import { useUsuarioStore } from "../stores/usuario"
 import { CADASTROS, visivelPara } from "../router/navegacao"

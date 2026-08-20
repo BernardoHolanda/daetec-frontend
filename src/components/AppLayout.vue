@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Casca das telas logadas: lateral no desktop, barra no celular, conteúdo por <RouterView>.
+ */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import { useAuthStore } from "../stores/auth"

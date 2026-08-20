@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Estado vazio: caixa pontilhada com título e uma explicação no slot.
+ */
 import IconeNav from "./IconeNav.vue"
 
 // icone é opcional: nem toda tela vazia merece um desenho no meio

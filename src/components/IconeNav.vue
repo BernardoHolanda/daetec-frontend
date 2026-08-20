@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Ícone SVG escolhido pelo nome. Traço, 24×24, tamanho fixo em h-5 w-5.
+ */
 defineProps<{ nome: string }>()
 </script>
 

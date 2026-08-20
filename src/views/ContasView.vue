@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Lista quem deve, da maior dívida pra menor.
+ */
 import { computed, onMounted, ref } from "vue"
 import { listarContas } from "../services/contas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"

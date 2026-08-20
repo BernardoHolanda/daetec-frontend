@@ -1,10 +1,15 @@
 <script setup lang="ts">
+/**
+ * Texto que vira campo ao clicar: parece rótulo, aceita digitação.
+ *
+ * Guarda um rascunho e só avisa o pai no Enter ou ao sair — aplicar a cada tecla faria
+ * "12" passar por "1". Esc desfaz.
+ */
 import { nextTick, ref, watch } from "vue"
 
 const props = defineProps<{ valor: string; rotulo: string }>()
 const emit = defineEmits<{ confirmar: [texto: string] }>()
 
-// rascunho local: aplicar a cada tecla faria "12" passar por "1" e mexer no carrinho
 const rascunho = ref(props.valor)
 
 watch(

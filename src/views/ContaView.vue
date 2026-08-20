@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Detalhe da conta de um cliente: o que ele consumiu e o acerto.
+ */
 import { computed, ref, watch } from "vue"
 import { isAxiosError } from "axios"
 import { fecharConta, obterConta } from "../services/contas"

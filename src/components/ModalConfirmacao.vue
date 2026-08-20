@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Confirmação em <dialog> nativo. `perigo` pinta o botão de vermelho.
+ */
 import { onBeforeUnmount, ref, watch } from "vue"
 
 const props = defineProps<{

@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * A venda em montagem: item, quantidade e subtotal.
+ *
+ * Quantidade e valor são editáveis. Digitar no valor resolve a quantidade ao contrário,
+ * pelo maior número de unidades que cabe no dinheiro informado.
+ */
 import { computed } from "vue"
 import { centavosDigitados, formatarBRL } from "../utils/dinheiro"
 import type { ItemCarrinho } from "../types/carrinho"

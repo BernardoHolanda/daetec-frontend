@@ -1,4 +1,11 @@
 <script setup lang="ts">
+/**
+ * Relatório do escopo escolhido: recebido por forma e por vendedor.
+ *
+ * Quem diz que dia é hoje é o backend, no fuso de Manaus — a primeira carga vai sem escopo
+ * só pra descobrir isso. Os cartões de conta em aberto são saldo de agora, não do intervalo,
+ * então só aparecem quando o escopo alcança hoje.
+ */
 import { computed, onMounted, ref } from "vue"
 import { obterRelatorio } from "../services/relatorio"
 import { formatarBRL, formatarValor, paraCentavos } from "../utils/dinheiro"
@@ -46,12 +53,12 @@ const vendido = computed(() => recebido.value + emConta.value)
 
 const porForma = computed(() =>
   FORMAS.map((forma) => {
-    // ?? "0": a forma sem venda no dia não vem no objeto
+    // ?? "0": a forma sem venda no escopo não vem no objeto
     const valor = somar((v) => v.recebido_por_forma[forma] ?? "0")
     return {
       forma,
       valor,
-      // guarda contra 0/0 = NaN em dia sem nada recebido
+      // guarda contra 0/0 = NaN em escopo sem nada recebido
       participacao: recebido.value === 0 ? 0 : (valor / recebido.value) * 100,
     }
   }),
@@ -73,7 +80,7 @@ const linhas = computed(() =>
         .map((d) => ({ ...d, valor: paraCentavos(d.valor) }))
         .sort((a, b) => b.valor - a.valor),
     }))
-    // em dia passado a conta não é mostrada, então quem não recebeu nada não tem linha
+    // escopo que não alcança hoje não mostra conta: quem não recebeu nada não tem linha
     .filter((linha) => linha.recebido > 0 || (incluiHoje.value && linha.conta > 0))
     // nome desempata pra a ordem não dançar entre recargas quando dois empatam
     .sort((a, b) => b.recebido - a.recebido || a.nome.localeCompare(b.nome, "pt-BR")),
@@ -81,7 +88,7 @@ const linhas = computed(() =>
 
 const comConta = computed(() => linhas.value.filter((linha) => linha.conta > 0))
 
-// uma fonte só pras colunas; sem a de conta, a tabela do dia passado tem 6
+// uma fonte só pras colunas; sem a de conta são 6, não 7
 const COLUNAS = computed(() =>
   incluiHoje.value
     ? "grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr_0.9fr_1fr_1.05fr]"
@@ -211,7 +218,7 @@ onMounted(carregar)
           </p>
         </div>
 
-        <!-- os dois cartões abaixo são saldo de agora, não do dia escolhido -->
+        <!-- os dois cartões abaixo são saldo de agora, não do escopo escolhido -->
         <template v-if="incluiHoje">
           <div
             class="border-linha flex flex-col justify-center gap-1.5 rounded-xl border bg-white p-3.5 lg:order-1 lg:p-5"
@@ -459,7 +466,7 @@ onMounted(carregar)
       </SecaoRecolhivel>
     </template>
 
-    <!-- fora do v-else de propósito: cancelar a última venda do dia zera os totais, e a
+    <!-- fora do v-else de propósito: cancelar a última venda do escopo zera os totais, e a
          lista precisa continuar na tela pra você ver o que acabou de desfazer -->
     <VendasDoEscopo
       v-if="hoje && !carregando && !erro"

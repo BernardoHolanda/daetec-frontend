@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * Estado de falha com botão de tentar de novo.
+ */
 defineProps<{ titulo: string }>()
 
 const emit = defineEmits<{ tentar: [] }>()
