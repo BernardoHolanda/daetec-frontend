@@ -23,3 +23,8 @@ export function formatarHora(iso: string): string {
 export function formatarDiaHora(iso: string): string {
   return `${formatarDia(iso)} · ${formatarHora(iso)}`
 }
+
+/** `"2026-08-02T18:12:00Z"` → `"02/08/2026 - 14:12"` */
+export function formatarDataHora(iso: string): string {
+  return `${new Date(iso).toLocaleDateString("pt-BR")} - ${formatarHora(iso)}`
+}

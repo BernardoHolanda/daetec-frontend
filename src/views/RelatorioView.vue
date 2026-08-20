@@ -30,7 +30,7 @@ const relatorio = ref<Relatorio | null>(null)
 const carregando = ref(true)
 const erro = ref(false)
 
-const contasVisiveis = ref(true)
+const contasVisiveis = ref(false)
 
 const inicio = ref("")
 const fim = ref("")

@@ -8,7 +8,7 @@
 import { computed, ref, watch } from "vue"
 import { cancelarVenda, listarVendasDoEscopo } from "../services/vendas"
 import { formatarBRL, paraCentavos } from "../utils/dinheiro"
-import { formatarHora } from "../utils/data"
+import { formatarDataHora } from "../utils/data"
 import { ROTULO_PAGAMENTO } from "../utils/pagamento"
 import { mensagemDoErro } from "../utils/erro"
 import type { Venda } from "../types/api"
@@ -30,7 +30,8 @@ const vendas = ref<Venda[]>([])
 const carregando = ref(true)
 const erro = ref(false)
 
-const visivel = ref(true)
+// nasce fechada: no escopo largo a lista é longa e empurra o resumo pra fora da tela
+const visivel = ref(false)
 const porPagina = ref<PorPagina>(10)
 const pagina = ref(1)
 
@@ -120,7 +121,7 @@ watch(() => [props.inicio, props.fim], carregar, { immediate: true })
 <template>
   <SecaoRecolhivel
     v-model="visivel"
-    :titulo="diaUnico ? 'Vendas do dia' : 'Vendas do período'"
+    titulo="Vendas"
     :subtitulo="carregando || erro ? undefined : resumo"
   >
     <!-- só faz sentido escolher o tamanho quando existe mais que a menor página -->
@@ -179,7 +180,7 @@ watch(() => [props.inicio, props.fim], carregar, { immediate: true })
             {{ itensDa(venda) }}
           </p>
           <p class="text-tinta-suave text-[13px] tabular-nums">
-            {{ formatarHora(venda.data_hora) }} · {{ formaDa(venda) }}
+            {{ formatarDataHora(venda.data_hora) }} · {{ formaDa(venda) }}
           </p>
         </div>
 
