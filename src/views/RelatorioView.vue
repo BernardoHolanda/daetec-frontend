@@ -7,8 +7,9 @@ import type { FormaPagamento, Relatorio, VendedorRelatorio } from "../types/api"
 import ErroAoCarregar from "../components/ErroAoCarregar.vue"
 import EstadoVazio from "../components/EstadoVazio.vue"
 import IconeNav from "../components/IconeNav.vue"
-import SeletorDia from "../components/SeletorDia.vue"
-import VendasDoDia from "../components/VendasDoDia.vue"
+import SecaoRecolhivel from "../components/SecaoRecolhivel.vue"
+import SeletorEscopo from "../components/SeletorEscopo.vue"
+import VendasDoEscopo from "../components/VendasDoEscopo.vue"
 
 // classes literais: o Tailwind lê o código como texto, `bg-${forma}` não geraria nada
 const CORES: Record<FormaPagamento, { icone: string; barra: string }> = {
@@ -22,10 +23,16 @@ const relatorio = ref<Relatorio | null>(null)
 const carregando = ref(true)
 const erro = ref(false)
 
-const dia = ref("")
+const contasVisiveis = ref(true)
+
+const inicio = ref("")
+const fim = ref("")
 // quem decide o "hoje" é o backend (fuso de Manaus), não o relógio de quem abriu a tela
 const hoje = ref("")
-const ehHoje = computed(() => dia.value === hoje.value)
+
+const diaUnico = computed(() => inicio.value === fim.value)
+// conta em aberto é saldo de agora, não do intervalo: só faz sentido se ele alcança hoje
+const incluiHoje = computed(() => fim.value === hoje.value)
 
 const vendedores = computed<VendedorRelatorio[]>(() => relatorio.value?.vendedores ?? [])
 
@@ -67,7 +74,7 @@ const linhas = computed(() =>
         .sort((a, b) => b.valor - a.valor),
     }))
     // em dia passado a conta não é mostrada, então quem não recebeu nada não tem linha
-    .filter((linha) => linha.recebido > 0 || (ehHoje.value && linha.conta > 0))
+    .filter((linha) => linha.recebido > 0 || (incluiHoje.value && linha.conta > 0))
     // nome desempata pra a ordem não dançar entre recargas quando dois empatam
     .sort((a, b) => b.recebido - a.recebido || a.nome.localeCompare(b.nome, "pt-BR")),
 )
@@ -76,7 +83,7 @@ const comConta = computed(() => linhas.value.filter((linha) => linha.conta > 0))
 
 // uma fonte só pras colunas; sem a de conta, a tabela do dia passado tem 6
 const COLUNAS = computed(() =>
-  ehHoje.value
+  incluiHoje.value
     ? "grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr_0.9fr_1fr_1.05fr]"
     : "grid-cols-[1.3fr_0.8fr_0.8fr_0.8fr_0.9fr_1fr]",
 )
@@ -101,12 +108,13 @@ async function carregar() {
   carregando.value = true
   erro.value = false
   try {
-    const dados = await obterRelatorio(dia.value || undefined)
+    const dados = await obterRelatorio(inicio.value || undefined, fim.value || undefined)
     relatorio.value = dados
-    // a primeira carga vem sem dia: é a resposta que ensina qual é o hoje do backend
-    if (!dia.value) {
-      hoje.value = dados.data
-      dia.value = dados.data
+    // a primeira carga vai sem escopo: é a resposta que ensina qual é o hoje do backend
+    if (!hoje.value) {
+      hoje.value = dados.fim
+      inicio.value = dados.inicio
+      fim.value = dados.fim
     }
   } catch {
     erro.value = true
@@ -115,8 +123,9 @@ async function carregar() {
   }
 }
 
-function escolherDia(novo: string) {
-  dia.value = novo
+function escolherEscopo(novoInicio: string, novoFim: string) {
+  inicio.value = novoInicio
+  fim.value = novoFim
   carregar()
 }
 
@@ -127,21 +136,29 @@ onMounted(carregar)
   <main class="flex min-w-0 flex-1 flex-col gap-4 p-4 lg:gap-5 lg:p-6">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
       <div>
-        <h1 class="text-[22px] font-semibold tracking-tight">Relatório do dia</h1>
+        <h1 class="text-[22px] font-semibold tracking-tight">Relatório</h1>
         <p v-if="relatorio" class="text-tinta-suave mt-1 text-sm">
           {{ linhas.length }}
           {{ linhas.length === 1 ? "vendedor" : "vendedores" }} com movimento
         </p>
       </div>
 
-      <SeletorDia v-if="hoje" :dia="dia" :max="hoje" @selecionar="escolherDia" />
+      <SeletorEscopo
+        v-if="hoje"
+        :inicio="inicio"
+        :fim="fim"
+        :max="hoje"
+        @selecionar="escolherEscopo"
+      />
     </div>
 
     <p
-      v-if="hoje && !ehHoje"
+      v-if="hoje && !incluiHoje"
       class="border-linha bg-fundo text-tinta-suave rounded-lg border px-3.5 py-2.5 text-[13px] leading-snug"
     >
-      Dia fechado: só o que foi <b class="text-tinta">recebido</b> nessa data.
+      {{ diaUnico ? "Dia fechado" : "Período fechado" }}: só o que foi
+      <b class="text-tinta">recebido</b>
+      {{ diaUnico ? "nessa data" : "nesse intervalo" }}.
     </p>
 
     <div v-if="carregando" aria-hidden="true" class="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
@@ -158,8 +175,17 @@ onMounted(carregar)
       @tentar="carregar"
     />
 
-    <EstadoVazio v-else-if="linhas.length === 0" titulo="Nenhum movimento nesse dia">
-      {{ ehHoje ? "Nada recebido e nenhuma conta em aberto." : "Nada foi recebido nessa data." }}
+    <EstadoVazio
+      v-else-if="linhas.length === 0"
+      :titulo="diaUnico ? 'Nenhum movimento nesse dia' : 'Nenhum movimento no período'"
+    >
+      {{
+        incluiHoje
+          ? "Nada recebido e nenhuma conta em aberto."
+          : diaUnico
+            ? "Nada foi recebido nessa data."
+            : "Nada foi recebido nesse intervalo."
+      }}
     </EstadoVazio>
 
     <template v-else>
@@ -167,7 +193,7 @@ onMounted(carregar)
            colunas ficam lado a lado e o vendido volta pra frente -->
       <div
         class="grid grid-cols-2 gap-2.5 lg:gap-4"
-        :class="ehHoje ? 'lg:grid-cols-3' : 'lg:grid-cols-1'"
+        :class="incluiHoje ? 'lg:grid-cols-3' : 'lg:grid-cols-1'"
       >
         <div
           class="col-span-2 flex flex-col justify-center gap-1.5 rounded-xl border border-green-200 bg-green-50 p-3.5 lg:order-2 lg:col-span-1 lg:p-5"
@@ -181,12 +207,12 @@ onMounted(carregar)
             {{ formatarBRL(recebido) }}
           </p>
           <p class="hidden text-[13px] font-medium text-green-700 lg:block">
-            dinheiro que entrou no dia
+            {{ diaUnico ? "dinheiro que entrou no dia" : "dinheiro que entrou no período" }}
           </p>
         </div>
 
         <!-- os dois cartões abaixo são saldo de agora, não do dia escolhido -->
-        <template v-if="ehHoje">
+        <template v-if="incluiHoje">
           <div
             class="border-linha flex flex-col justify-center gap-1.5 rounded-xl border bg-white p-3.5 lg:order-1 lg:p-5"
           >
@@ -232,7 +258,9 @@ onMounted(carregar)
             </p>
           </div>
 
-          <p v-if="recebido === 0" class="text-tinta-suave text-sm">Nada recebido nesse dia.</p>
+          <p v-if="recebido === 0" class="text-tinta-suave text-sm">
+            {{ diaUnico ? "Nada recebido nesse dia." : "Nada recebido nesse período." }}
+          </p>
 
           <ul v-else class="flex flex-col gap-3 lg:gap-3.5">
             <li v-for="item in porForma" :key="item.forma" class="flex flex-col gap-1.5">
@@ -263,7 +291,7 @@ onMounted(carregar)
           </ul>
 
           <div
-            v-if="ehHoje"
+            v-if="incluiHoje"
             class="flex flex-col gap-1.5 border-t border-dashed border-amber-200 pt-3.5"
           >
             <div class="flex items-baseline justify-between gap-3">
@@ -293,7 +321,7 @@ onMounted(carregar)
                 {{ ROTULO_PAGAMENTO[forma] }}
               </span>
               <span class="text-right text-green-700">Recebido</span>
-              <span v-if="ehHoje" class="text-right text-amber-800">Conta (aberto)</span>
+              <span v-if="incluiHoje" class="text-right text-amber-800">Conta (aberto)</span>
             </div>
 
             <div
@@ -315,7 +343,7 @@ onMounted(carregar)
                 {{ formatarBRL(linha.recebido) }}
               </span>
               <span
-                v-if="ehHoje"
+                v-if="incluiHoje"
                 class="text-right font-bold"
                 :class="
                   linha.conta === 0
@@ -338,7 +366,7 @@ onMounted(carregar)
                 {{ item.valor === 0 ? "—" : formatarValor(item.valor) }}
               </span>
               <span class="text-right text-green-700">{{ formatarBRL(recebido) }}</span>
-              <span v-if="ehHoje" class="text-right text-amber-800">
+              <span v-if="incluiHoje" class="text-right text-amber-800">
                 {{ formatarBRL(emConta) }}
               </span>
             </div>
@@ -375,7 +403,7 @@ onMounted(carregar)
               </div>
 
               <div
-                v-if="ehHoje"
+                v-if="incluiHoje"
                 class="flex items-baseline justify-between gap-3 rounded-lg border px-2.5 py-2"
                 :class="
                   linha.conta === 0 ? 'border-linha bg-fundo' : 'border-amber-200 bg-amber-50'
@@ -399,9 +427,12 @@ onMounted(carregar)
         </section>
       </div>
 
-      <section v-if="ehHoje && comConta.length > 0" class="flex flex-col gap-2.5 lg:gap-3">
-        <h2 class="font-semibold lg:text-[17px]">Contas abertas por vendedor</h2>
-
+      <SecaoRecolhivel
+        v-if="incluiHoje && comConta.length > 0"
+        v-model="contasVisiveis"
+        titulo="Contas abertas por vendedor"
+        :subtitulo="`${comConta.length} ${comConta.length === 1 ? 'vendedor' : 'vendedores'} · ${formatarBRL(emConta)}`"
+      >
         <ul class="grid gap-2.5 lg:grid-cols-2 lg:gap-3">
           <li
             v-for="linha in comConta"
@@ -425,11 +456,16 @@ onMounted(carregar)
             </div>
           </li>
         </ul>
-      </section>
+      </SecaoRecolhivel>
     </template>
 
     <!-- fora do v-else de propósito: cancelar a última venda do dia zera os totais, e a
          lista precisa continuar na tela pra você ver o que acabou de desfazer -->
-    <VendasDoDia v-if="hoje && !carregando && !erro" :dia="dia" @cancelada="carregar" />
+    <VendasDoEscopo
+      v-if="hoje && !carregando && !erro"
+      :inicio="inicio"
+      :fim="fim"
+      @cancelada="carregar"
+    />
   </main>
 </template>

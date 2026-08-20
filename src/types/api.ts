@@ -94,7 +94,9 @@ export interface VendedorRelatorio {
 }
 
 export interface Relatorio {
-  data: string
+  // o escopo pedido, já normalizado pelo backend: é daqui que sai o "hoje" do fuso de Manaus
+  inicio: string
+  fim: string
   vendedores: VendedorRelatorio[]
 }
 

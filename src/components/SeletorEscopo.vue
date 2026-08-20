@@ -3,14 +3,15 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { formatarData } from "../utils/data"
 import IconeNav from "./IconeNav.vue"
 
-const props = defineProps<{ dia: string; max: string }>()
-const emit = defineEmits<{ selecionar: [string] }>()
+const props = defineProps<{ inicio: string; fim: string; max: string }>()
+const emit = defineEmits<{ selecionar: [inicio: string, fim: string] }>()
 
 const SEMANA = ["D", "S", "T", "Q", "Q", "S", "S"]
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 const ANOS_POR_PAGINA = 12
 
 type Modo = "dias" | "meses" | "anos"
+type Ponta = "inicio" | "fim"
 
 /** ISO → Date no fuso local. `new Date("2026-08-10")` seria meia-noite UTC, ou seja, dia 9 aqui. */
 function paraData(iso: string): Date {
@@ -24,14 +25,18 @@ function paraISO(data: Date): string {
   return `${data.getFullYear()}-${mes}-${dia}`
 }
 
-const aberto = ref(false)
+// qual ponta está sendo editada; null = calendário fechado
+const editando = ref<Ponta | null>(null)
 const modo = ref<Modo>("dias")
-const mesVisivel = ref(paraData(props.dia))
+const mesVisivel = ref(paraData(props.fim))
 
-watch(aberto, (estaAberto) => {
-  if (estaAberto) {
+const emEdicao = computed(() => (editando.value === "inicio" ? props.inicio : props.fim))
+
+watch(editando, (ponta) => {
+  if (ponta) {
     modo.value = "dias"
-    mesVisivel.value = paraData(props.dia)
+    // abre no mês da ponta clicada: procurar o início lá de dezembro seria trabalho à toa
+    mesVisivel.value = paraData(ponta === "inicio" ? props.inicio : props.fim)
   }
 })
 
@@ -39,7 +44,7 @@ const limite = computed(() => paraData(props.max))
 const anoVisivel = computed(() => mesVisivel.value.getFullYear())
 
 const escolhido = computed(() => {
-  const data = paraData(props.dia)
+  const data = paraData(emEdicao.value)
   return { ano: data.getFullYear(), mes: data.getMonth() }
 })
 
@@ -90,6 +95,14 @@ const podeAvancar = computed(() => {
   return paraISO(new Date(anoVisivel.value, mesVisivel.value.getMonth() + 1, 1)) <= props.max
 })
 
+const diaUnico = computed(() => props.inicio === props.fim)
+
+/** Dias entre as pontas, contando as duas: 10→10 é 1 dia, não 0. */
+const quantosDias = computed(() => {
+  const ms = paraData(props.fim).getTime() - paraData(props.inicio).getTime()
+  return Math.round(ms / 86_400_000) + 1
+})
+
 function avancar(passo: number) {
   const atual = mesVisivel.value
   if (modo.value === "dias") {
@@ -114,13 +127,24 @@ function escolherAno(ano: number) {
   modo.value = "meses"
 }
 
+function alternar(ponta: Ponta) {
+  editando.value = editando.value === ponta ? null : ponta
+}
+
+function aplicar(novoInicio: string, novoFim: string) {
+  editando.value = null
+  if (novoInicio !== props.inicio || novoFim !== props.fim) emit("selecionar", novoInicio, novoFim)
+}
+
 function escolher(iso: string) {
-  aberto.value = false
-  if (iso !== props.dia) emit("selecionar", iso)
+  // a outra ponta cede quando seria ultrapassada: arrastar o início pra frente do fim
+  // vira dia único, em vez de recusar o clique sem explicar por quê
+  if (editando.value === "inicio") aplicar(iso, iso > props.fim ? iso : props.fim)
+  else aplicar(iso < props.inicio ? iso : props.inicio, iso)
 }
 
 function aoTeclar(evento: KeyboardEvent) {
-  if (evento.key === "Escape") aberto.value = false
+  if (evento.key === "Escape") editando.value = null
 }
 
 onMounted(() => window.addEventListener("keydown", aoTeclar))
@@ -129,24 +153,90 @@ onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
 
 <template>
   <div class="relative shrink-0">
-    <button
-      type="button"
-      aria-haspopup="dialog"
-      :aria-expanded="aberto"
-      class="border-linha-forte flex h-12 w-full items-center gap-2.5 rounded-lg border bg-white px-3.5 font-semibold tabular-nums focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none lg:h-11 lg:w-auto"
-      @click="aberto = !aberto"
-    >
-      <IconeNav nome="calendario" class="text-violet-600" />
-      {{ formatarData(dia) }}
-      <span v-if="dia === max" class="text-tinta-fraca font-medium">(hoje)</span>
-    </button>
+    <!-- mesma caixa que o seletor de dia usava: borda, fundo branco, canto arredondado -->
+    <div class="border-linha-forte rounded-lg border bg-white px-3.5 pt-2 pb-2.5 lg:w-83">
+      <div class="mb-1.5 flex items-baseline justify-between gap-2">
+        <p class="text-tinta-fraca text-[10px] font-semibold tracking-widest uppercase">
+          Escolher escopo
+        </p>
+        <p v-if="!diaUnico" class="text-tinta-fraca text-[11px] tabular-nums">
+          {{ quantosDias }} dias
+        </p>
+      </div>
 
-    <template v-if="aberto">
-      <div class="fixed inset-0 z-20" @click="aberto = false"></div>
+      <!-- justify-between em vez de flex-1: cada ponta encolhe até o próprio conteúdo,
+           então o vazio do meio (e a linha) não faz parte de alvo de clique nenhum -->
+      <div class="relative flex items-start justify-between gap-2">
+        <!-- a linha atravessa de ponta a ponta por trás; as bolinhas são opacas e tapam
+             as duas extremidades, então ela nasce encostada nas duas.
+             top-1.75: metade da bolinha (18px) menos metade do traço (4px) -->
+        <span aria-hidden="true" class="absolute top-1.75 right-0 left-0 h-1 bg-violet-600"></span>
+
+        <div class="relative flex min-w-0 flex-col items-start gap-1">
+          <!-- aria-hidden + tabindex -1: atalho de mouse repetido. Quem navega por teclado
+               ou leitor chega pelo botão da data, que faz a mesma coisa e tem nome -->
+          <button
+            type="button"
+            tabindex="-1"
+            aria-hidden="true"
+            class="grid h-4.5 w-4.5 place-items-center rounded-full border-2 border-violet-600"
+            :class="editando === 'inicio' ? 'bg-white' : 'bg-violet-600'"
+            @click="alternar('inicio')"
+          >
+            <!-- miolo só na ponta em edição: vira alvo de rádio marcado -->
+            <span
+              v-if="editando === 'inicio'"
+              class="h-1.5 w-1.5 rounded-full bg-violet-600"
+            ></span>
+          </button>
+
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            :aria-expanded="editando === 'inicio'"
+            aria-label="Escolher o início do escopo"
+            class="hover:bg-fundo -ml-1 truncate rounded-md px-1 py-0.5 text-sm font-semibold tabular-nums focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+            :class="editando === 'inicio' && 'bg-violet-50 text-violet-800'"
+            @click="alternar('inicio')"
+          >
+            {{ formatarData(inicio) }}
+          </button>
+        </div>
+
+        <div class="relative flex min-w-0 flex-col items-end gap-1">
+          <button
+            type="button"
+            tabindex="-1"
+            aria-hidden="true"
+            class="grid h-4.5 w-4.5 place-items-center rounded-full border-2 border-violet-600"
+            :class="editando === 'fim' ? 'bg-white' : 'bg-violet-600'"
+            @click="alternar('fim')"
+          >
+            <span v-if="editando === 'fim'" class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
+          </button>
+
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            :aria-expanded="editando === 'fim'"
+            aria-label="Escolher o fim do escopo"
+            class="hover:bg-fundo -mr-1 truncate rounded-md px-1 py-0.5 text-sm font-semibold tabular-nums focus-visible:ring-4 focus-visible:ring-violet-200 focus-visible:outline-none"
+            :class="editando === 'fim' && 'bg-violet-50 text-violet-800'"
+            @click="alternar('fim')"
+          >
+            {{ formatarData(fim) }}
+            <span v-if="fim === max" class="text-tinta-fraca font-medium">(hoje)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <template v-if="editando">
+      <div class="fixed inset-0 z-20" @click="editando = null"></div>
 
       <div
         role="dialog"
-        aria-label="Escolher o dia"
+        :aria-label="editando === 'inicio' ? 'Escolher o início' : 'Escolher o fim'"
         class="border-linha absolute top-full right-0 z-30 mt-2 w-76 rounded-xl border bg-white p-3 shadow-lg"
       >
         <div class="flex items-center justify-between gap-2">
@@ -190,25 +280,36 @@ onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
             <span v-for="(letra, i) in SEMANA" :key="i" class="py-1">{{ letra }}</span>
           </div>
 
-          <div class="grid grid-cols-7 gap-0.5">
+          <div class="grid grid-cols-7 gap-y-0.5">
             <template v-for="celula in celulas" :key="celula.chave">
               <span v-if="!celula.iso"></span>
               <button
                 v-else
                 type="button"
                 :disabled="celula.iso > max"
-                :aria-pressed="celula.iso === dia"
-                class="grid h-9 place-items-center rounded-lg text-sm tabular-nums disabled:cursor-not-allowed disabled:opacity-30"
-                :class="
-                  celula.iso === dia
-                    ? 'bg-violet-600 font-semibold text-white'
-                    : celula.iso === max
-                      ? 'font-semibold text-violet-800 hover:bg-violet-50'
-                      : 'hover:bg-fundo'
-                "
+                :aria-pressed="celula.iso === emEdicao"
+                class="grid h-9 place-items-center text-sm tabular-nums disabled:cursor-not-allowed disabled:opacity-30"
+                :class="[
+                  // o miolo pinta o fundo inteiro da célula pra faixa sair contínua;
+                  // as pontas arredondam só do lado de fora
+                  celula.iso > inicio && celula.iso < fim && 'bg-violet-50',
+                  celula.iso === inicio && !diaUnico && 'rounded-l-lg bg-violet-50',
+                  celula.iso === fim && !diaUnico && 'rounded-r-lg bg-violet-50',
+                ]"
                 @click="escolher(celula.iso)"
               >
-                {{ celula.numero }}
+                <span
+                  class="grid h-9 w-9 place-items-center rounded-lg"
+                  :class="
+                    celula.iso === inicio || celula.iso === fim
+                      ? 'bg-violet-600 font-semibold text-white'
+                      : celula.iso === max
+                        ? 'font-semibold text-violet-800 hover:bg-violet-100'
+                        : 'hover:bg-fundo'
+                  "
+                >
+                  {{ celula.numero }}
+                </span>
               </button>
             </template>
           </div>
@@ -253,7 +354,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", aoTeclar))
         <button
           type="button"
           class="border-linha text-tinta-suave hover:bg-fundo mt-2 h-10 w-full rounded-lg border text-sm font-semibold"
-          @click="escolher(max)"
+          @click="aplicar(max, max)"
         >
           Hoje
         </button>

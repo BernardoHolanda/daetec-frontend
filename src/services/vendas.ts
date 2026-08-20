@@ -6,10 +6,10 @@ export async function registrarVenda(dados: VendaCreate): Promise<Venda> {
   return data
 }
 
-/** `dia` em ISO. Traz as canceladas junto: quem revisa precisa ver o que já desfez. */
-export async function listarVendasDoDia(dia: string): Promise<Venda[]> {
+/** Escopo em ISO. Traz as canceladas junto: quem revisa precisa ver o que já desfez. */
+export async function listarVendasDoEscopo(inicio: string, fim: string): Promise<Venda[]> {
   const { data } = await api.get<Venda[]>("/vendas", {
-    params: { dia, incluir_canceladas: true },
+    params: { inicio, fim, incluir_canceladas: true },
   })
   return data
 }

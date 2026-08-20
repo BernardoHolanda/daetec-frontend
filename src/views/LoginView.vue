@@ -92,7 +92,7 @@ const onSubmit = handleSubmit(async (values) => {
           </li>
           <li class="flex items-center gap-2.5">
             <span aria-hidden="true" class="h-1.5 w-1.5 rounded-full bg-violet-600"></span>
-            Relatório do dia por vendedor
+            Relatório por vendedor
           </li>
         </ul>
       </div>

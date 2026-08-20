@@ -84,6 +84,9 @@ defineProps<{ nome: string }>()
     <template v-else-if="nome === 'avancar'">
       <path d="M9 6l6 6-6 6" />
     </template>
+    <template v-else-if="nome === 'recolher'">
+      <path d="M6 9l6 6 6-6" />
+    </template>
     <template v-else-if="nome === 'check'">
       <path d="M20 6L9 17l-5-5" />
     </template>
