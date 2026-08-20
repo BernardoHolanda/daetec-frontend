@@ -1,21 +1,20 @@
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
-
-const TOKEN_KEY = "daetec_token"
+import { esquecerToken, guardarToken, lerToken } from "../utils/sessao"
 
 export const useAuthStore = defineStore("auth", () => {
-  const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
+  const token = ref<string | null>(lerToken())
 
   const isAuthenticated = computed(() => token.value !== null)
 
   function setToken(newToken: string) {
     token.value = newToken
-    localStorage.setItem(TOKEN_KEY, newToken)
+    guardarToken(newToken)
   }
 
   function logout() {
     token.value = null
-    localStorage.removeItem(TOKEN_KEY)
+    esquecerToken()
   }
 
   return { token, isAuthenticated, setToken, logout }

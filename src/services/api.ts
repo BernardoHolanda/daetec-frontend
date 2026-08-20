@@ -1,13 +1,12 @@
 import axios from "axios"
-
-const CHAVE_TOKEN = "daetec_token"
+import { esquecerToken, lerToken } from "../utils/sessao"
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(CHAVE_TOKEN)
+  const token = lerToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -24,7 +23,7 @@ api.interceptors.response.use(
     const naTelaDeLogin = window.location.pathname === "/login"
 
     if (naoAutorizado && !naTelaDeLogin) {
-      localStorage.removeItem(CHAVE_TOKEN)
+      esquecerToken()
       window.location.assign("/login")
     }
 
