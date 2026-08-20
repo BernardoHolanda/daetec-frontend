@@ -189,6 +189,16 @@ function alterar(produtoId: number, delta: number) {
   carrinhoStore.alterar(produtoId, delta)
 }
 
+/**
+ * Quantidade digitada direto, já cortada pelo estoque: pedir 5 quando só há 2 deixa 2,
+ * em vez de recusar o número inteiro e não mexer em nada.
+ */
+function definir(produtoId: number, quantidade: number) {
+  const produto = produtos.value.find((p) => p.id === produtoId)
+  const teto = produto?.estoque ?? null
+  carrinhoStore.definir(produtoId, teto === null ? quantidade : Math.min(quantidade, teto))
+}
+
 function limpar() {
   carrinhoStore.limpar()
 }
@@ -371,7 +381,12 @@ onMounted(carregar)
 
       <!-- min-h-0: item de flex não encolhe abaixo do conteúdo por padrão, e sem isso
            o overflow-y-auto lá dentro nunca chega a valer -->
-      <PainelCarrinho :itens="itens" class="lg:min-h-0 lg:flex-1" @alterar="alterar" />
+      <PainelCarrinho
+        :itens="itens"
+        class="lg:min-h-0 lg:flex-1"
+        @alterar="alterar"
+        @definir="definir"
+      />
 
       <SeletorPagamento v-model="forma" :desabilitado="itens.length === 0">
         <!-- sempre renderizado, só desabilitado: sumir e voltar empurraria a grade de

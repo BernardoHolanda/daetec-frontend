@@ -23,11 +23,17 @@ export const useCarrinhoStore = defineStore("carrinho", () => {
     else quantidades.value.set(produtoId, nova)
   }
 
+  /** Quantidade absoluta, para quem digita o número em vez de somar de um em um. */
+  function definir(produtoId: number, quantidade: number) {
+    if (quantidade <= 0) quantidades.value.delete(produtoId)
+    else quantidades.value.set(produtoId, quantidade)
+  }
+
   function limpar() {
     quantidades.value.clear()
     forma.value = null
     cliente.value = null
   }
 
-  return { quantidades, forma, cliente, quantidade, alterar, limpar }
+  return { quantidades, forma, cliente, quantidade, alterar, definir, limpar }
 })

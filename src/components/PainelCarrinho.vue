@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed } from "vue"
-import { formatarBRL } from "../utils/dinheiro"
+import { centavosDigitados, formatarBRL } from "../utils/dinheiro"
 import type { ItemCarrinho } from "../types/carrinho"
+import CampoInline from "./CampoInline.vue"
 import IconeNav from "./IconeNav.vue"
 
 const props = defineProps<{
   itens: ItemCarrinho[]
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   alterar: [produtoId: number, delta: number]
+  definir: [produtoId: number, quantidade: number]
 }>()
 
 const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quantidade, 0))
@@ -17,6 +19,20 @@ const quantidadeTotal = computed(() => props.itens.reduce((s, i) => s + i.quanti
 /** O item já carrega o produto inteiro, então o estoque vem junto — sem prop nova. */
 function cabeMais(item: ItemCarrinho): boolean {
   return item.produto.estoque === null || item.quantidade < item.produto.estoque
+}
+
+function digitouQuantidade(item: ItemCarrinho, texto: string) {
+  const digitos = texto.replace(/\D/g, "")
+  if (digitos === "") return
+  emit("definir", item.produto.id, Number(digitos))
+}
+
+function digitouValor(item: ItemCarrinho, texto: string) {
+  const centavos = centavosDigitados(texto)
+  if (centavos === null) return
+  // arredonda pra baixo: com R$ 2,00 na mão, 3 unidades a R$ 1,80 servem e 4 a R$ 2,10
+  // não — cobrar mais do que a pessoa pediu seria pior que devolver troco
+  emit("definir", item.produto.id, Math.floor(centavos / item.unitario))
 }
 </script>
 
@@ -64,9 +80,12 @@ function cabeMais(item: ItemCarrinho): boolean {
           >
             −
           </button>
-          <span class="min-w-6 text-center text-[17px] font-semibold tabular-nums">
-            {{ item.quantidade }}
-          </span>
+          <CampoInline
+            :valor="String(item.quantidade)"
+            :rotulo="`Quantidade de ${item.produto.nome}`"
+            class="w-11 text-center text-[17px]"
+            @confirmar="(texto) => digitouQuantidade(item, texto)"
+          />
           <button
             type="button"
             :disabled="!cabeMais(item)"
@@ -79,9 +98,12 @@ function cabeMais(item: ItemCarrinho): boolean {
           </button>
         </div>
 
-        <span class="w-20 shrink-0 text-right text-[17px] font-bold tabular-nums">
-          {{ formatarBRL(item.subtotal) }}
-        </span>
+        <CampoInline
+          :valor="formatarBRL(item.subtotal)"
+          :rotulo="`Valor de ${item.produto.nome}`"
+          class="w-24 shrink-0 text-right text-[17px] font-bold"
+          @confirmar="(texto) => digitouValor(item, texto)"
+        />
       </li>
     </ul>
   </section>
