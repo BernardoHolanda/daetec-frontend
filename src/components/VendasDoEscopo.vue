@@ -86,6 +86,23 @@ function formaDa(venda: Venda): string {
   return venda.forma_pagamento ? ROTULO_PAGAMENTO[venda.forma_pagamento] : "Conta (em aberto)"
 }
 
+/** A data em que o dinheiro se moveu — a mesma pela qual o backend filtra o escopo. */
+function quandoDa(venda: Venda): string {
+  return venda.paga_em ?? venda.data_hora
+}
+
+/**
+ * Dia da venda, quando ela foi acertada em outro dia. Vazio no resto — em venda à vista
+ * os dois instantes são o mesmo, e repetir a data não diria nada.
+ */
+function vendidaEm(venda: Venda): string {
+  if (venda.paga_em === null) return ""
+  // compara o dia no fuso de quem olha: 23:30 em Manaus é 03:30 UTC do dia seguinte
+  const dia = (iso: string) => new Date(iso).toLocaleDateString("pt-BR")
+  const vendida = dia(venda.data_hora)
+  return vendida === dia(venda.paga_em) ? "" : vendida
+}
+
 async function carregar() {
   carregando.value = true
   erro.value = false
@@ -180,7 +197,10 @@ watch(() => [props.inicio, props.fim], carregar, { immediate: true })
             {{ itensDa(venda) }}
           </p>
           <p class="text-tinta-suave text-[13px] tabular-nums">
-            {{ formatarDataHora(venda.data_hora) }} · {{ formaDa(venda) }}
+            {{ formatarDataHora(quandoDa(venda)) }} · {{ formaDa(venda) }}
+            <span v-if="vendidaEm(venda)" class="text-tinta-fraca">
+              · venda de {{ vendidaEm(venda) }}
+            </span>
           </p>
         </div>
 
